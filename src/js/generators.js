@@ -9,7 +9,12 @@
  *
  */
 export function* characterGenerator(allowedTypes, maxLevel) {
-  // TODO: write logic here
+  while (true) {
+    const RandomType = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
+    const randomLevel = Math.floor(Math.random() * maxLevel) + 1;
+    const character = new RandomType(randomLevel);
+    yield character;
+  }
 }
 
 /**
