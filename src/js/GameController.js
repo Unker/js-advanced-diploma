@@ -7,8 +7,8 @@ export default class GameController {
   }
 
   init() {
-    // TODO: add event listeners to gamePlay events
     this.gamePlay.drawUi(themes.arctic);
+    // TODO: add event listeners to gamePlay events
     // TODO: load saved stated from stateService
   }
 
