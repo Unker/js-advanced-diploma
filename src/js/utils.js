@@ -22,28 +22,31 @@
  * ```
  * */
 export function calcTileType(index, boardSize) {
-  const row = Math.floor(index / boardSize); 
-  const col = index % boardSize; 
+  const row = Math.floor(index / boardSize);
+  const col = index % boardSize;
+  let cellType;
 
   if (row === 0 && col === 0) {
-    return 'top-left';
+    cellType = 'top-left';
   } else if (row === 0 && col === boardSize - 1) {
-    return 'top-right';
+    cellType = 'top-right';
   } else if (row === 0) {
-    return 'top';
+    cellType = 'top';
   } else if (row === boardSize - 1 && col === 0) {
-    return 'bottom-left';
+    cellType = 'bottom-left';
   } else if (row === boardSize - 1 && col === boardSize - 1) {
-    return 'bottom-right';
+    cellType = 'bottom-right';
   } else if (row === boardSize - 1) {
-    return 'bottom';
+    cellType = 'bottom';
   } else if (col === 0) {
-    return 'left';
+    cellType = 'left';
   } else if (col === boardSize - 1) {
-    return 'right';
+    cellType = 'right';
   } else {
-    return 'center';
+    cellType = 'center';
   }
+
+  return cellType;
 }
 
 export function calcHealthLevel(health) {

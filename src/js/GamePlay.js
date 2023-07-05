@@ -54,6 +54,7 @@ export default class GamePlay {
     for (let i = 0; i < this.boardSize ** 2; i += 1) {
       const cellEl = document.createElement('div');
       cellEl.classList.add('cell', 'map-tile', `map-tile-${calcTileType(i, this.boardSize)}`);
+      cellEl.innerHTML += i;
       cellEl.addEventListener('mouseenter', (event) => this.onCellEnter(event));
       cellEl.addEventListener('mouseleave', (event) => this.onCellLeave(event));
       cellEl.addEventListener('click', (event) => this.onCellClick(event));
