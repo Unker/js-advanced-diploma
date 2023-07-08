@@ -30,7 +30,7 @@ export default class GameController {
     const playerPositions = this._generatePositions(this.playerTeam.characters, 1, 2);
     const enemyPositions = this._generatePositions(this.enemyTeam.characters, 7, 8);
     this.allPositions = playerPositions.concat(enemyPositions);
-    
+
     this.gamePlay.redrawPositions(this.allPositions);
 
     // TODO: add event listeners to gamePlay events
