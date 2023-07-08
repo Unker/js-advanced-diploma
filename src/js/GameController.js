@@ -5,6 +5,7 @@ import Undead from './characters/undead';
 import Swordsman from './characters/swordsman';
 import Magician from './characters/magician';
 import Bowman from './characters/bowman';
+import Character from './Character';
 import { generateTeam } from './generators';
 import PositionedCharacter from './PositionedCharacter';
 
@@ -29,11 +30,14 @@ export default class GameController {
     // Draws positions
     const playerPositions = this._generatePositions(this.playerTeam.characters, 1, 2);
     const enemyPositions = this._generatePositions(this.enemyTeam.characters, 7, 8);
-    this.allPositions = playerPositions.concat(enemyPositions);
+    this.allPositionsCharacter = playerPositions.concat(enemyPositions);
 
-    this.gamePlay.redrawPositions(this.allPositions);
+    this.gamePlay.redrawPositions(this.allPositionsCharacter);
 
-    // TODO: add event listeners to gamePlay events
+    // add event listeners to gamePlay events
+    this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
+    this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
+
     // TODO: load saved stated from stateService
   }
 
@@ -88,13 +92,44 @@ export default class GameController {
     // TODO: react to click
   }
 
-  // eslint-disable-next-line class-methods-use-this
   onCellEnter(index) {
-    // TODO: react to mouse enter
+    const positionCharacter = this.allPositionsCharacter
+      .find((position) => position.position === index);
+
+    if (positionCharacter) {
+      const { character } = positionCharacter;
+      const tooltipMessage = GameController.formatToolTip`${character}`;
+      this.gamePlay.showCellTooltip(tooltipMessage, index);
+    }
   }
 
-  // eslint-disable-next-line class-methods-use-this
   onCellLeave(index) {
-    // TODO: react to mouse leave
+    this.gamePlay.hideCellTooltip(index);
+  }
+
+  static formatToolTip(strings, ...values) {
+    const result = [];
+
+    for (let i = 0; i < strings.length; i += 1) {
+      result.push(strings[i]);
+
+      if (i < values.length) {
+        const value = values[i];
+
+        if (value instanceof Character) {
+          const {
+            level, attack, defence, health,
+          } = value;
+          result.push(`${String.fromCodePoint(0x1F396)} ${level} `);
+          result.push(`\u2694 ${attack} `);
+          result.push(`${String.fromCodePoint(0x1F6E1)} ${defence} `);
+          result.push(`\u2764 ${health}`);
+        } else {
+          result.push(value);
+        }
+      }
+    }
+
+    return result.join('');
   }
 }
