@@ -8,6 +8,8 @@ import Bowman from './characters/bowman';
 import Character from './Character';
 import { generateTeam } from './generators';
 import PositionedCharacter from './PositionedCharacter';
+import GameState from './GameState';
+import GamePlay from './GamePlay';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -37,6 +39,9 @@ export default class GameController {
     // add event listeners to gamePlay events
     this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
     this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
+    this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
+
+    this.gameState = new GameState();
 
     // TODO: load saved stated from stateService
   }
@@ -87,9 +92,27 @@ export default class GameController {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   onCellClick(index) {
-    // TODO: react to click
+    if (this.gameState.currentPlayer === 'player') {
+      const positionCharacter = this.allPositionsCharacter
+        .find((position) => position.position === index);
+      if (!positionCharacter) return;
+      const isPlayerCharacter = this.playerTeam.characters.includes(positionCharacter.character);
+      if (!isPlayerCharacter) {
+        GamePlay.showError('Select a player character!');
+        return;
+      }
+
+      // Проверяем, есть ли уже выбранный персонаж
+      if (this.selectedCharacter) {
+        this.gamePlay.deselectCell(this.selectedCharacter.position);
+      }
+
+      // Выделяем текущую ячейку
+      this.gamePlay.selectCell(index);
+
+      this.selectedCharacter = positionCharacter;
+    }
   }
 
   onCellEnter(index) {
