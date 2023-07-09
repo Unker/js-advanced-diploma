@@ -10,11 +10,17 @@ import { generateTeam } from './generators';
 import PositionedCharacter from './PositionedCharacter';
 import GameState from './GameState';
 import GamePlay from './GamePlay';
+import cursors from './cursors';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
     this.gamePlay = gamePlay;
     this.stateService = stateService;
+    this.selectedCharacter = undefined;
+    this.playerTeam = undefined;
+    this.enemyTeam = undefined;
+    this.allPositionsCharacter = undefined;
+    this.gameState = undefined;
   }
 
   init() {
@@ -30,7 +36,7 @@ export default class GameController {
     this.enemyTeam = generateTeam(enemyTypes, maxLevel, characterCount);
 
     // Draws positions
-    const playerPositions = this._generatePositions(this.playerTeam.characters, 1, 2);
+    const playerPositions = this._generatePositions(this.playerTeam.characters, 5, 6);
     const enemyPositions = this._generatePositions(this.enemyTeam.characters, 7, 8);
     this.allPositionsCharacter = playerPositions.concat(enemyPositions);
 
@@ -92,14 +98,27 @@ export default class GameController {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
+  _getPositionCharacter(index) {
+    return this.allPositionsCharacter
+      .find((position) => position.position === index);
+  }
+
   onCellClick(index) {
     if (this.gameState.currentPlayer === 'player') {
-      const positionCharacter = this.allPositionsCharacter
-        .find((position) => position.position === index);
+      const positionCharacter = this._getPositionCharacter(index);
+
       if (!positionCharacter) return;
-      const isPlayerCharacter = this.playerTeam.characters.includes(positionCharacter.character);
-      if (!isPlayerCharacter) {
-        GamePlay.showError('Select a player character!');
+      if (!this.isPlayerCharacter(positionCharacter.character)) {
+        // Это персонаж противника. Проверяем возможность атаки
+        if (this.selectedCharacter) {
+          if (this.isAttackAllowed(this.selectedCharacter, positionCharacter)) {
+            console.log('attack');
+          } else {
+            console.log('attack not allowed');
+          }
+        } else {
+          GamePlay.showError('Select a player character!');
+        }
         return;
       }
 
@@ -116,18 +135,44 @@ export default class GameController {
   }
 
   onCellEnter(index) {
-    const positionCharacter = this.allPositionsCharacter
-      .find((position) => position.position === index);
+    const positionCharacter = this._getPositionCharacter(index);
 
+    // Если курсор на персонаже
     if (positionCharacter) {
       const { character } = positionCharacter;
+
+      // всплывающая подсказка
       const tooltipMessage = GameController.formatToolTip`${character}`;
       this.gamePlay.showCellTooltip(tooltipMessage, index);
+    }
+
+    // Если выбран персонаж, то проверяем доступные ходы перемещения и атак
+    if (this.selectedCharacter) {
+      // Проверяем возможные действия для выбранного персонажа
+      if (positionCharacter && this.isPlayerCharacter(positionCharacter.character)) {
+        this.gamePlay.setCursor(cursors.pointer);
+      } else if (this.isAttackAllowed(this.selectedCharacter, positionCharacter)) {
+        this.gamePlay.setCursor(cursors.crosshair);
+        this.gamePlay.selectCell(index, 'red');
+      } else if (this.isMoveAllowed(this.selectedCharacter, index)) {
+        this.gamePlay.setCursor(cursors.pointer);
+        this.gamePlay.selectCell(index, 'green');
+      } else {
+        this.gamePlay.setCursor(cursors.notallowed);
+      }
+    } else {
+      this.gamePlay.setCursor(cursors.pointer);
     }
   }
 
   onCellLeave(index) {
     this.gamePlay.hideCellTooltip(index);
+
+    if (this.gameState.currentPlayer === 'player') {
+      if (this.selectedCharacter) {
+        this.gamePlay.deselectCell(index);
+      }
+    }
   }
 
   static formatToolTip(strings, ...values) {
@@ -154,5 +199,70 @@ export default class GameController {
     }
 
     return result.join('');
+  }
+
+  isPlayerCharacter(character) {
+    return this.playerTeam.characters.includes(character);
+  }
+
+  isAttackAllowed(selectedCharacter, targetCharacter) {
+    if (!targetCharacter) {
+      return false;
+    }
+
+    const { character } = selectedCharacter;
+    const { position } = selectedCharacter;
+    const { position: targetPosition } = targetCharacter;
+    const { rowDistance, columnDistance } = this._calcDistance(position, targetPosition);
+
+    switch (character.constructor) {
+      case Swordsman:
+      case Undead:
+      case Bowman:
+      case Vampire:
+      case Magician:
+      case Daemon:
+        return rowDistance <= character.attackDistance
+          && columnDistance <= character.attackDistance;
+      default:
+        return false;
+    }
+  }
+
+  _calcDistance(currentPosition, targetPosition) {
+    const targetRow = Math.floor(targetPosition / this.gamePlay.boardSize);
+    const targetColumn = targetPosition % this.gamePlay.boardSize;
+    const currentRow = Math.floor(currentPosition / this.gamePlay.boardSize);
+    const currentColumn = currentPosition % this.gamePlay.boardSize;
+
+    const rowDistance = Math.abs(targetRow - currentRow);
+    const columnDistance = Math.abs(targetColumn - currentColumn);
+
+    return { rowDistance, columnDistance };
+  }
+
+  isMoveAllowed(selectedCharacter, targetPosition) {
+    // перемещение на другог персонажа недопустим
+    if (this._getPositionCharacter(targetPosition)) {
+      return false;
+    }
+
+    const { character } = selectedCharacter;
+    const { position } = selectedCharacter;
+    const { rowDistance, columnDistance } = this._calcDistance(position, targetPosition);
+
+    switch (character.constructor) {
+      case Swordsman:
+      case Undead:
+      case Bowman:
+      case Vampire:
+      case Magician:
+      case Daemon:
+        return rowDistance <= character.moveDistance
+          && columnDistance <= character.moveDistance
+          && (rowDistance === 0 || columnDistance === 0 || rowDistance === columnDistance);
+      default:
+        return false;
+    }
   }
 }
