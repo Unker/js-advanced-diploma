@@ -170,7 +170,9 @@ export default class GameController {
 
     if (this.gameState.currentPlayer === 'player') {
       if (this.selectedCharacter) {
-        this.gamePlay.deselectCell(index);
+        if (index !== this.selectedCharacter.position) {
+          this.gamePlay.deselectCell(index);
+        }
       }
     }
   }
