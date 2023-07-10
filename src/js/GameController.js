@@ -105,13 +105,13 @@ export default class GameController {
 
   onCellClick(index) {
     if (this.gameState.currentPlayer === 'player') {
-      const positionCharacter = this._getPositionCharacter(index);
+      const targetCharacter = this._getPositionCharacter(index);
 
-      if (!positionCharacter) return;
-      if (!this.isPlayerCharacter(positionCharacter.character)) {
+      if (!targetCharacter) return;
+      if (!this.isPlayerCharacter(targetCharacter.character)) {
         // Это персонаж противника. Проверяем возможность атаки
         if (this.selectedCharacter) {
-          if (this.isAttackAllowed(this.selectedCharacter, positionCharacter)) {
+          if (this.isAttackAllowed(this.selectedCharacter, targetCharacter.position)) {
             console.log('attack');
           } else {
             console.log('attack not allowed');
@@ -130,16 +130,16 @@ export default class GameController {
       // Выделяем текущую ячейку
       this.gamePlay.selectCell(index);
 
-      this.selectedCharacter = positionCharacter;
+      this.selectedCharacter = targetCharacter;
     }
   }
 
   onCellEnter(index) {
-    const positionCharacter = this._getPositionCharacter(index);
+    const targetCharacter = this._getPositionCharacter(index);
 
     // Если курсор на персонаже
-    if (positionCharacter) {
-      const { character } = positionCharacter;
+    if (targetCharacter) {
+      const { character } = targetCharacter;
 
       // всплывающая подсказка
       const tooltipMessage = GameController.formatToolTip`${character}`;
@@ -149,9 +149,9 @@ export default class GameController {
     // Если выбран персонаж, то проверяем доступные ходы перемещения и атак
     if (this.selectedCharacter) {
       // Проверяем возможные действия для выбранного персонажа
-      if (positionCharacter && this.isPlayerCharacter(positionCharacter.character)) {
+      if (targetCharacter && this.isPlayerCharacter(targetCharacter.character)) {
         this.gamePlay.setCursor(cursors.pointer);
-      } else if (this.isAttackAllowed(this.selectedCharacter, positionCharacter)) {
+      } else if (this.isAttackAllowed(this.selectedCharacter, targetCharacter.position)) {
         this.gamePlay.setCursor(cursors.crosshair);
         this.gamePlay.selectCell(index, 'red');
       } else if (this.isMoveAllowed(this.selectedCharacter, index)) {
@@ -207,14 +207,13 @@ export default class GameController {
     return this.playerTeam.characters.includes(character);
   }
 
-  isAttackAllowed(selectedCharacter, targetCharacter) {
-    if (!targetCharacter) {
+  isAttackAllowed(selectedCharacter, targetPosition) {
+    if (selectedCharacter.position === targetPosition) {
       return false;
     }
 
     const { character } = selectedCharacter;
     const { position } = selectedCharacter;
-    const { position: targetPosition } = targetCharacter;
     const { rowDistance, columnDistance } = this._calcDistance(position, targetPosition);
 
     switch (character.constructor) {
@@ -244,7 +243,7 @@ export default class GameController {
   }
 
   isMoveAllowed(selectedCharacter, targetPosition) {
-    // перемещение на другог персонажа недопустим
+    // перемещение на другого персонажа недопустимо
     if (this._getPositionCharacter(targetPosition)) {
       return false;
     }
