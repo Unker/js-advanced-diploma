@@ -105,9 +105,9 @@ export default class GameController {
 
   onCellClick(index) {
     if (this.gameState.currentPlayer === 'player') {
-      const chooseCharacter = this._getPositionCharacter(index);
+      const clickedCharacter = this._getPositionCharacter(index);
 
-      if (!chooseCharacter) {
+      if (!clickedCharacter) {
         // кликнули на пустое поле. Делаем перемещение, если ранее выбран персонаж
         const moveable = this.gamePlay.cells[index].classList.contains('selected-green');
         if (this.selectedCharacter && moveable) {
@@ -119,10 +119,10 @@ export default class GameController {
         return;
       }
 
-      if (!this.isPlayerCharacter(chooseCharacter.character)) {
+      if (!this.isPlayerCharacter(clickedCharacter.character)) {
         // Это персонаж противника. Проверяем возможность атаки
         if (this.selectedCharacter) {
-          if (this.isAttackAllowed(this.selectedCharacter, chooseCharacter.position)) {
+          if (this.isAttackAllowed(this.selectedCharacter, clickedCharacter.position)) {
             console.log('attack');
           } else {
             console.log('attack not allowed');
@@ -141,7 +141,7 @@ export default class GameController {
       // Выделяем текущую ячейку
       this.gamePlay.selectCell(index);
 
-      this.selectedCharacter = chooseCharacter;
+      this.selectedCharacter = clickedCharacter;
     }
   }
 
