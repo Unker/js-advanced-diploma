@@ -151,7 +151,9 @@ export default class GameController {
       // Проверяем возможные действия для выбранного персонажа
       if (targetCharacter && this.isPlayerCharacter(targetCharacter.character)) {
         this.gamePlay.setCursor(cursors.pointer);
-      } else if (this.isAttackAllowed(this.selectedCharacter, targetCharacter.position)) {
+      } else if (targetCharacter
+          && this.isAttackAllowed(this.selectedCharacter, targetCharacter.position)
+      ) {
         this.gamePlay.setCursor(cursors.crosshair);
         this.gamePlay.selectCell(index, 'red');
       } else if (this.isMoveAllowed(this.selectedCharacter, index)) {
