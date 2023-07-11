@@ -1,11 +1,13 @@
 export default class GameState {
   constructor() {
     this.currentPlayer = 'player'; // Изначально текущий ход у игрока
-    this.level = 1;
+    this._level = 1;
   }
 
   switchPlayer() {
-    this.currentPlayer = this.currentPlayer === 'player' ? 'computer' : 'player'; // Переключаем текущего игрока
+    // Переключаем текущего игрока
+    // this.currentPlayer = this.currentPlayer === 'player' ? 'computer' : 'player';
+    this.currentPlayer = 'player';
   }
 
   static from(object) {
@@ -14,5 +16,17 @@ export default class GameState {
       gameState.currentPlayer = object.currentPlayer;
     }
     return gameState;
+  }
+
+  get level() {
+    return this._level;
+  }
+
+  set level(value) {
+    if (typeof value === 'number' && value >= 1 && value <= 4) {
+      this._level = value;
+    } else {
+      throw new Error('Invalid level value. Level must be between 1 and 4.');
+    }
   }
 }

@@ -22,10 +22,22 @@ export default class Character {
       throw new Error('Character level should be between 1 and 4.');
     }
 
-    this.level = level;
+    this._level = level;
     this.attack = 0;
     this.defence = 0;
     this.health = 100;
     this.type = type;
+  }
+
+  get level() {
+    return this._level;
+  }
+
+  set level(value) {
+    if (typeof value === 'number' && value >= 1 && value <= 4) {
+      this._level = value;
+    } else {
+      throw new Error('Invalid level value. Level must be between 1 and 4');
+    }
   }
 }

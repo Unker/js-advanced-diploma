@@ -21,22 +21,41 @@ export default class GameController {
     this.enemyTeam = undefined;
     this.allPositionsCharacter = undefined;
     this.gameState = undefined;
+    this._maxLevel = 3;
+    // this.characterCount = 4;
+    this._characterCount = 1;
   }
 
   init() {
+    // add event listeners to gamePlay events
+    this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
+    this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
+    this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
+
     this.gameState = new GameState();
+
+    // команду игроку генерим только один раз - в начале игры
+    const playerTypes = [Bowman, Swordsman, Magician];
+    this.playerTeam = generateTeam(playerTypes, this._maxLevel, this._characterCount);
+
+    this._startGame();
+
+    // TODO: load saved stated from stateService
+  }
+
+  _startGame() {
+    // первым всегда начинает игрок
+    this.gameState.currentPlayer = 'player';
 
     const level = Object.keys(themes)[this.gameState.level - 1];
     this.gamePlay.drawUi(level);
 
-    // teams building
-    const playerTypes = [Bowman, Swordsman, Magician];
-    const enemyTypes = [Daemon, Vampire, Undead];
-    const maxLevel = 3;
-    const characterCount = 4;
+    this.selectedCharacter = undefined;
 
-    this.playerTeam = generateTeam(playerTypes, maxLevel, characterCount);
-    this.enemyTeam = generateTeam(enemyTypes, maxLevel, characterCount);
+    // teams building
+    const enemyTypes = [Daemon, Vampire, Undead];
+
+    this.enemyTeam = generateTeam(enemyTypes, this._maxLevel, this._characterCount);
 
     // Draws positions
     const playerPositions = this._generatePositions(this.playerTeam.characters, 5, 6);
@@ -44,13 +63,6 @@ export default class GameController {
     this.allPositionsCharacter = playerPositions.concat(enemyPositions);
 
     this.gamePlay.redrawPositions(this.allPositionsCharacter);
-
-    // add event listeners to gamePlay events
-    this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
-    this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
-    this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
-
-    // TODO: load saved stated from stateService
   }
 
   /**
@@ -104,9 +116,18 @@ export default class GameController {
       .find((position) => position.position === index);
   }
 
-  // _levelUp() {
+  _levelUp() {
+    console.log('level up');
+    if (this.gameState.level === 4) {
+      console.log('Game over');
+    } else {
+      this.gameState.level += 1;
+    }
+    // повышаем уровень у выживших
 
-  // }
+    // переинициализируем с новыми персонажами
+    this._startGame();
+  }
 
   onCellClick(index) {
     if (this.gameState.currentPlayer === 'player') {
@@ -122,6 +143,7 @@ export default class GameController {
           this.gamePlay.selectCell(index); // установить выделение выбранного персонажа
           this.gamePlay.redrawPositions(this.allPositionsCharacter);
         }
+        this.gameState.switchPlayer();
         return;
       }
 
@@ -154,6 +176,7 @@ export default class GameController {
         } else {
           GamePlay.showError('Select a player character!');
         }
+        this.gameState.switchPlayer();
         return;
       }
 
@@ -170,46 +193,46 @@ export default class GameController {
   }
 
   onCellEnter(index) {
-    const targetCharacter = this._getPositionCharacter(index);
+    if (this.gameState.currentPlayer === 'player') {
+      const targetCharacter = this._getPositionCharacter(index);
 
-    // Если курсор на персонаже
-    if (targetCharacter) {
-      const { character } = targetCharacter;
+      // Если курсор на персонаже
+      if (targetCharacter) {
+        const { character } = targetCharacter;
 
-      // всплывающая подсказка
-      const tooltipMessage = GameController.formatToolTip`${character}`;
-      this.gamePlay.showCellTooltip(tooltipMessage, index);
-    }
-
-    // Если выбран персонаж, то проверяем доступные ходы перемещения и атак
-    if (this.selectedCharacter) {
-      // Проверяем возможные действия для выбранного персонажа
-      if (targetCharacter && this.isPlayerCharacter(targetCharacter.character)) {
-        this.gamePlay.setCursor(cursors.pointer);
-      } else if (targetCharacter
-          && this.isAttackAllowed(this.selectedCharacter, targetCharacter.position)
-      ) {
-        this.gamePlay.setCursor(cursors.crosshair);
-        this.gamePlay.selectCell(index, 'red');
-      } else if (this.isMoveAllowed(this.selectedCharacter, index)) {
-        this.gamePlay.setCursor(cursors.pointer);
-        this.gamePlay.selectCell(index, 'green');
-      } else {
-        this.gamePlay.setCursor(cursors.notallowed);
+        // всплывающая подсказка
+        const tooltipMessage = GameController.formatToolTip`${character}`;
+        this.gamePlay.showCellTooltip(tooltipMessage, index);
       }
-    } else {
-      this.gamePlay.setCursor(cursors.pointer);
+
+      // Если выбран персонаж, то проверяем доступные ходы перемещения и атак
+      if (this.selectedCharacter) {
+        // Проверяем возможные действия для выбранного персонажа
+        if (targetCharacter && this.isPlayerCharacter(targetCharacter.character)) {
+          this.gamePlay.setCursor(cursors.pointer);
+        } else if (targetCharacter
+            && this.isAttackAllowed(this.selectedCharacter, targetCharacter.position)
+        ) {
+          this.gamePlay.setCursor(cursors.crosshair);
+          this.gamePlay.selectCell(index, 'red');
+        } else if (this.isMoveAllowed(this.selectedCharacter, index)) {
+          this.gamePlay.setCursor(cursors.pointer);
+          this.gamePlay.selectCell(index, 'green');
+        } else {
+          this.gamePlay.setCursor(cursors.notallowed);
+        }
+      } else {
+        this.gamePlay.setCursor(cursors.pointer);
+      }
     }
   }
 
   onCellLeave(index) {
     this.gamePlay.hideCellTooltip(index);
 
-    if (this.gameState.currentPlayer === 'player') {
-      if (this.selectedCharacter) {
-        if (index !== this.selectedCharacter.position) {
-          this.gamePlay.deselectCell(index);
-        }
+    if (this.selectedCharacter) {
+      if (index !== this.selectedCharacter.position) {
+        this.gamePlay.deselectCell(index);
       }
     }
   }
