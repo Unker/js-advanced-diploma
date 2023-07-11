@@ -38,7 +38,7 @@ describe('Character class', () => {
     expect(daemon.level).toBe(1);
     expect(daemon.attack).toBe(10);
     expect(daemon.defence).toBe(10);
-    expect(daemon.health).toBe(50);
+    expect(daemon.health).toBe(100);
     expect(daemon.type).toBe('daemon');
 
     const vampire = new Vampire(2);
@@ -47,7 +47,7 @@ describe('Character class', () => {
     expect(vampire.level).toBe(2);
     expect(vampire.attack).toBe(25);
     expect(vampire.defence).toBe(25);
-    expect(vampire.health).toBe(50);
+    expect(vampire.health).toBe(100);
     expect(vampire.type).toBe('vampire');
 
     const undead = new Undead(3);
@@ -56,7 +56,7 @@ describe('Character class', () => {
     expect(undead.level).toBe(3);
     expect(undead.attack).toBe(40);
     expect(undead.defence).toBe(10);
-    expect(undead.health).toBe(50);
+    expect(undead.health).toBe(100);
     expect(undead.type).toBe('undead');
 
     const swordsman = new Swordsman(4);
@@ -65,7 +65,7 @@ describe('Character class', () => {
     expect(swordsman.level).toBe(4);
     expect(swordsman.attack).toBe(40);
     expect(swordsman.defence).toBe(10);
-    expect(swordsman.health).toBe(50);
+    expect(swordsman.health).toBe(100);
     expect(swordsman.type).toBe('swordsman');
 
     const magician = new Magician(4);
@@ -74,7 +74,7 @@ describe('Character class', () => {
     expect(magician.level).toBe(4);
     expect(magician.attack).toBe(10);
     expect(magician.defence).toBe(40);
-    expect(magician.health).toBe(50);
+    expect(magician.health).toBe(100);
     expect(magician.type).toBe('magician');
 
     const bowman = new Bowman(4);
@@ -83,7 +83,7 @@ describe('Character class', () => {
     expect(bowman.level).toBe(4);
     expect(bowman.attack).toBe(25);
     expect(bowman.defence).toBe(25);
-    expect(bowman.health).toBe(50);
+    expect(bowman.health).toBe(100);
     expect(bowman.type).toBe('bowman');
   });
 });

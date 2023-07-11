@@ -24,7 +24,10 @@ export default class GameController {
   }
 
   init() {
-    this.gamePlay.drawUi(themes.arctic);
+    this.gameState = new GameState();
+
+    const level = Object.keys(themes)[this.gameState.level - 1];
+    this.gamePlay.drawUi(level);
 
     // teams building
     const playerTypes = [Bowman, Swordsman, Magician];
@@ -46,8 +49,6 @@ export default class GameController {
     this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
     this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
     this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
-
-    this.gameState = new GameState();
 
     // TODO: load saved stated from stateService
   }
@@ -103,6 +104,10 @@ export default class GameController {
       .find((position) => position.position === index);
   }
 
+  // _levelUp() {
+
+  // }
+
   onCellClick(index) {
     if (this.gameState.currentPlayer === 'player') {
       const clickedCharacter = this._getPositionCharacter(index);
@@ -112,8 +117,9 @@ export default class GameController {
         const moveable = this.gamePlay.cells[index].classList.contains('selected-green');
         if (this.selectedCharacter && moveable) {
           this.gamePlay.deselectCell(this.selectedCharacter.position);
-          this.gamePlay.deselectCell(index);
+          this.gamePlay.deselectCell(index); // снять выделение хода
           this.selectedCharacter.position = index;
+          this.gamePlay.selectCell(index); // установить выделение выбранного персонажа
           this.gamePlay.redrawPositions(this.allPositionsCharacter);
         }
         return;
@@ -123,7 +129,25 @@ export default class GameController {
         // Это персонаж противника. Проверяем возможность атаки
         if (this.selectedCharacter) {
           if (this.isAttackAllowed(this.selectedCharacter, clickedCharacter.position)) {
-            console.log('attack');
+            const { character: target, position: tergetPos } = clickedCharacter;
+            const { character: attacker } = this.selectedCharacter;
+            // const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
+            const damage = 110;
+            this.gamePlay.showDamage(index, damage).then(() => {
+              // уменьшаем количество жизней
+              target.health -= damage;
+              if (target.health <= 0) {
+                // Атакованный персонаж умирает
+                this.allPositionsCharacter = this.allPositionsCharacter.filter(
+                  (character) => character.position !== tergetPos,
+                );
+              }
+              this.gamePlay.redrawPositions(this.allPositionsCharacter);
+              // если не осталось персонажей у противника, то делаем новый уровень
+              this._levelUp();
+            }, (err) => {
+              console.log(err);
+            });
           } else {
             console.log('attack not allowed');
           }
