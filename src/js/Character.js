@@ -45,11 +45,12 @@ export default class Character {
       return;
     }
     const oldAttack = this.attack;
-    const aldHealth = this.health;
-    this.attack = Math.max(oldAttack, (oldAttack * (80 + aldHealth)) / 100);
-    this.health = Math.min(100, aldHealth + 80);
+    const oldHealth = this.health;
+    this.attack = Math.max(oldAttack, (oldAttack * (80 + oldHealth)) / 100);
+    this.attack = Math.floor(this.attack);
+    this.health = Math.floor(Math.min(100, oldHealth + 80));
+
     this.level += 1;
-    const newCount = count - 1;
-    this.levelUp(newCount);
+    this.levelUp(count - 1);
   }
 }

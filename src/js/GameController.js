@@ -31,7 +31,14 @@ export default class GameController {
     this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
     this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
     this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
+    this.gamePlay.addNewGameListener(this._startNewGame.bind(this));
 
+    this._startNewGame();
+
+    // TODO: load saved stated from stateService
+  }
+
+  _startNewGame() {
     this.gameState = new GameState();
 
     // команду игроку генерим только один раз - в начале игры
@@ -39,8 +46,6 @@ export default class GameController {
     this.playerTeam = generateTeam(playerTypes, this._maxLevel, this._characterCount);
 
     this._startNewGameLevel();
-
-    // TODO: load saved stated from stateService
   }
 
   _startNewGameLevel() {
