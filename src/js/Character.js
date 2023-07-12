@@ -22,7 +22,7 @@ export default class Character {
       throw new Error('Character level should be between 1 and 4.');
     }
 
-    this._level = level;
+    this._level = 1;
     this.attack = 0;
     this.defence = 0;
     this.health = 100;
@@ -36,8 +36,20 @@ export default class Character {
   set level(value) {
     if (typeof value === 'number' && value >= 1 && value <= 4) {
       this._level = value;
-    } else {
-      throw new Error('Invalid level value. Level must be between 1 and 4');
     }
+  }
+
+  // повышаем уровень и характеристики count раз
+  levelUp(count) {
+    if (!count || count <= 0) {
+      return;
+    }
+    const oldAttack = this.attack;
+    const aldHealth = this.health;
+    this.attack = Math.max(oldAttack, (oldAttack * (80 + aldHealth)) / 100);
+    this.health = Math.min(100, aldHealth + 80);
+    this.level += 1;
+    const newCount = count - 1;
+    this.levelUp(newCount);
   }
 }

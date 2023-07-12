@@ -45,7 +45,7 @@ describe('Character class', () => {
 
     expect(vampire).toBeInstanceOf(Vampire);
     expect(vampire.level).toBe(2);
-    expect(vampire.attack).toBe(25);
+    expect(vampire.attack).toBe(45);
     expect(vampire.defence).toBe(25);
     expect(vampire.health).toBe(100);
     expect(vampire.type).toBe('vampire');
@@ -54,7 +54,7 @@ describe('Character class', () => {
 
     expect(undead).toBeInstanceOf(Undead);
     expect(undead.level).toBe(3);
-    expect(undead.attack).toBe(40);
+    expect(undead.attack).toBe(129.6);
     expect(undead.defence).toBe(10);
     expect(undead.health).toBe(100);
     expect(undead.type).toBe('undead');
@@ -63,7 +63,7 @@ describe('Character class', () => {
 
     expect(swordsman).toBeInstanceOf(Swordsman);
     expect(swordsman.level).toBe(4);
-    expect(swordsman.attack).toBe(40);
+    expect(swordsman.attack).toBe(233.28);
     expect(swordsman.defence).toBe(10);
     expect(swordsman.health).toBe(100);
     expect(swordsman.type).toBe('swordsman');
@@ -72,7 +72,7 @@ describe('Character class', () => {
 
     expect(magician).toBeInstanceOf(Magician);
     expect(magician.level).toBe(4);
-    expect(magician.attack).toBe(10);
+    expect(magician.attack).toBe(58.32);
     expect(magician.defence).toBe(40);
     expect(magician.health).toBe(100);
     expect(magician.type).toBe('magician');
@@ -81,7 +81,7 @@ describe('Character class', () => {
 
     expect(bowman).toBeInstanceOf(Bowman);
     expect(bowman.level).toBe(4);
-    expect(bowman.attack).toBe(25);
+    expect(bowman.attack).toBe(145.8);
     expect(bowman.defence).toBe(25);
     expect(bowman.health).toBe(100);
     expect(bowman.type).toBe('bowman');

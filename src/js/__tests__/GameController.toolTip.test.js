@@ -17,7 +17,7 @@ describe('formatToolTip function', () => {
     const character = new Bowman(3);
 
     const formattedToolTip = GameController.formatToolTip`Информация о персонаже: ${character}`;
-    const expectedToolTip = 'Информация о персонаже: 🎖 3 ⚔ 25 🛡 25 ❤ 100';
+    const expectedToolTip = 'Информация о персонаже: 🎖 3 ⚔ 81 🛡 25 ❤ 100';
 
     expect(formattedToolTip).toBe(expectedToolTip);
   });

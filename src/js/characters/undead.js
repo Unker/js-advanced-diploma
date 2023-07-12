@@ -7,5 +7,6 @@ export default class Undead extends Character {
     this.defence = 10;
     this.moveDistance = 4;
     this.attackDistance = 1;
+    this.levelUp(level - 1);
   }
 }

@@ -7,5 +7,6 @@ export default class Daemon extends Character {
     this.defence = 10;
     this.moveDistance = 1;
     this.attackDistance = 4;
+    this.levelUp(level - 1);
   }
 }
