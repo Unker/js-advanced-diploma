@@ -35,6 +35,10 @@ export default class GamePlay {
         <button data-id="action-save" class="btn">Save Game</button>
         <button data-id="action-load" class="btn">Load Game</button>
       </div>
+      <div class="scores">
+        <div data-id="current-score" class="score">Score: 0</div>
+        <div data-id="max-score" class="score">Max Score: 0</div>
+      </div>
       <div class="board-container">
         <div data-id="board" class="board"></div>
       </div>
@@ -47,6 +51,8 @@ export default class GamePlay {
     this.newGameEl.addEventListener('click', (event) => this.onNewGameClick(event));
     this.saveGameEl.addEventListener('click', (event) => this.onSaveGameClick(event));
     this.loadGameEl.addEventListener('click', (event) => this.onLoadGameClick(event));
+
+    this.scoreEl = this.container.querySelector('[data-id=score]');
 
     this.boardEl = this.container.querySelector('[data-id=board]');
 
@@ -61,6 +67,16 @@ export default class GamePlay {
     }
 
     this.cells = Array.from(this.boardEl.children);
+  }
+
+  updateCurrentScore(score) {
+    const scoreEl = this.container.querySelector('[data-id=current-score]');
+    scoreEl.textContent = `Score: ${score}`;
+  }
+
+  updateMaxScore(maxScore) {
+    const maxScoreEl = this.container.querySelector('[data-id=max-score]');
+    maxScoreEl.textContent = `Max Score: ${maxScore}`;
   }
 
   /**
@@ -165,6 +181,10 @@ export default class GamePlay {
   onNewGameClick(event) {
     event.preventDefault();
     this.newGameListeners.forEach((o) => o.call(null));
+
+    // Обновление текущего и максимального количества очков
+    this.updateCurrentScore(0);
+    this.updateMaxScore(0); // todo восстановить
   }
 
   onSaveGameClick(event) {

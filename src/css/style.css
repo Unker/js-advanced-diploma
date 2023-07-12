@@ -252,3 +252,16 @@ body {
     font-size: 1.5rem;
   }
 }
+
+.scores {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+  }
+  
+  .score {
+  color: white;
+  font-size: 18px;
+  }
+  

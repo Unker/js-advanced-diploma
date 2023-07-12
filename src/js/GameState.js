@@ -2,6 +2,7 @@ export default class GameState {
   constructor() {
     this.currentPlayer = 'player'; // Изначально текущий ход у игрока
     this._level = 1;
+    this.score = 0;
   }
 
   switchPlayer() {

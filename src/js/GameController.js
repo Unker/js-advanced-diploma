@@ -190,6 +190,8 @@ export default class GameController {
               if (this.enemyPositions.length === 0) {
                 this._levelUp(true);
               }
+              this.gameState.score += damage;
+              this.gamePlay.updateCurrentScore(this.gameState.score);
             }, (err) => {
               console.log(err);
             });
