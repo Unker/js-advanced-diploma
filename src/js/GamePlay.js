@@ -1,4 +1,5 @@
 import { calcHealthLevel, calcTileType } from './utils';
+import cursors from './cursors';
 
 export default class GamePlay {
   constructor() {
@@ -51,6 +52,12 @@ export default class GamePlay {
     this.newGameEl.addEventListener('click', (event) => this.onNewGameClick(event));
     this.saveGameEl.addEventListener('click', (event) => this.onSaveGameClick(event));
     this.loadGameEl.addEventListener('click', (event) => this.onLoadGameClick(event));
+
+    this.btns = this.container.querySelectorAll('[class=btn]');
+    this.btns.forEach((btn) => {
+      btn.addEventListener('mouseenter', (event) => this.onBtnEnter(event));
+      btn.addEventListener('mouseleave', (event) => this.onBtnLeave(event));
+    });
 
     this.scoreEl = this.container.querySelector('[data-id=score]');
 
@@ -184,7 +191,7 @@ export default class GamePlay {
 
     // Обновление текущего и максимального количества очков
     this.updateCurrentScore(0);
-    this.updateMaxScore(0); // todo восстановить
+    this.updateMaxScore(0);
   }
 
   onSaveGameClick(event) {
@@ -195,6 +202,16 @@ export default class GamePlay {
   onLoadGameClick(event) {
     event.preventDefault();
     this.loadGameListeners.forEach((o) => o.call(null));
+  }
+
+  static onBtnEnter(event) {
+    event.preventDefault();
+    event.target.style.cursor.setCursor(cursors.pointer);
+  }
+
+  static onBtnLeave(event) {
+    event.preventDefault();
+    event.target.style.cursor.setCursor(cursors.auto);
   }
 
   static showError(message) {
