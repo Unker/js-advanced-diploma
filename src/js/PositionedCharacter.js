@@ -13,4 +13,11 @@ export default class PositionedCharacter {
     this.character = character;
     this.position = position;
   }
+
+  static fromObject(object) {
+    const positionedCharacter = new PositionedCharacter();
+    Object.assign(positionedCharacter, object);
+
+    return positionedCharacter;
+  }
 }

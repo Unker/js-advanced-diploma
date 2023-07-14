@@ -55,8 +55,8 @@ export default class GamePlay {
 
     this.btns = this.container.querySelectorAll('[class=btn]');
     this.btns.forEach((btn) => {
-      btn.addEventListener('mouseenter', (event) => this.onBtnEnter(event));
-      btn.addEventListener('mouseleave', (event) => this.onBtnLeave(event));
+      btn.addEventListener('mouseenter', (event) => GamePlay.onBtnEnter(event));
+      btn.addEventListener('mouseleave', (event) => GamePlay.onBtnLeave(event));
     });
 
     this.scoreEl = this.container.querySelector('[data-id=score]');
@@ -206,12 +206,14 @@ export default class GamePlay {
 
   static onBtnEnter(event) {
     event.preventDefault();
-    event.target.style.cursor.setCursor(cursors.pointer);
+    const { target } = event;
+    target.style.cursor = cursors.pointer;
   }
 
   static onBtnLeave(event) {
     event.preventDefault();
-    event.target.style.cursor.setCursor(cursors.auto);
+    const { target } = event;
+    target.style.cursor = cursors.auto;
   }
 
   static showError(message) {

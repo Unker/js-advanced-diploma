@@ -1,15 +1,15 @@
 import GameController from '../GameController';
-import PositionedCharacter from '../PositionedCharacter';
 import Bowman from '../characters/bowman';
 import Swordsman from '../characters/swordsman';
 import Magician from '../characters/magician';
 import Undead from '../characters/undead';
 import Vampire from '../characters/vampire';
 import Daemon from '../characters/daemon';
-import GamePlay from '../GamePlay';
+import GameState from '../GameState';
 
 describe('GameController - Character Movement', () => {
   let gameController;
+  // let gameState;
   const allPositions = Array.from({ length: 8 ** 2 }, (_, i) => i);
 
   beforeEach(() => {
@@ -17,6 +17,7 @@ describe('GameController - Character Movement', () => {
       boardSize: 8,
     };
     gameController = new GameController(gamePlayMock, null);
+    gameController.gameState = new GameState();
   });
 
   const characterMovementTemplate = (CharacterClass, allowedMoves, allowedAttacks) => {
@@ -24,7 +25,7 @@ describe('GameController - Character Movement', () => {
       const character = new CharacterClass();
       const selectedCharacter = { character, position: 0 };
 
-      gameController.allPositionsCharacter = Array(selectedCharacter);
+      gameController.gameState.allPositionsCharacter = Array(selectedCharacter);
 
       const result = allPositions.filter((position) => gameController
         .isMoveAllowed(selectedCharacter, position));

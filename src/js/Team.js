@@ -1,3 +1,10 @@
+import Undead from './characters/undead';
+import Vampire from './characters/vampire';
+import Swordsman from './characters/swordsman';
+import Magician from './characters/magician';
+import Bowman from './characters/bowman';
+import Daemon from './characters/daemon';
+
 /**
  * Класс, представляющий персонажей команды
  *
@@ -14,5 +21,32 @@
 export default class Team {
   constructor(characters) {
     this.characters = characters;
+  }
+
+  static fromObject(object) {
+    const team = new Team();
+
+    if (object && object.characters) {
+      team.characters = object.characters.map((characterObject) => {
+        switch (characterObject.type) {
+          case 'undead':
+            return new Undead(characterObject._level);
+          case 'vampire':
+            return new Vampire(characterObject._level);
+          case 'swordsman':
+            return new Swordsman(characterObject._level);
+          case 'magician':
+            return new Magician(characterObject._level);
+          case 'bowman':
+            return new Bowman(characterObject._level);
+          case 'daemon':
+            return new Daemon(characterObject._level);
+          default:
+            throw new Error(`Unknown character type: ${characterObject.type}`);
+        }
+      });
+    }
+
+    return team;
   }
 }
