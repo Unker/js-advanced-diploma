@@ -20,8 +20,7 @@ export default class GameController {
     this.selectedCharacter = undefined;
     this.gameState = undefined;
     this._maxLevel = 3;
-    // this._characterCount = 4;
-    this._characterCount = 2;
+    this._characterCount = 4;
   }
 
   init() {
@@ -175,26 +174,33 @@ export default class GameController {
 
   _calcDamageAndKill(targetCharacter, damage) {
     const { character: target, position: tergetPos } = targetCharacter;
-    // уменьшаем количество жизней
-    target.health -= damage;
-    if (target.health <= 0) {
-      // Атакованный персонаж умирает
-      this.gameState.allPositionsCharacter = this.gameState.allPositionsCharacter.filter(
-        (character) => character.position !== tergetPos,
-      );
-      this.gameState.playerPositions = this.gameState.playerPositions.filter(
-        (character) => character.position !== tergetPos,
-      );
-      this.gameState.playerTeam.characters = this.gameState.playerTeam.characters.filter(
-        (character) => character.health > 0,
-      );
-      this.gameState.enemyPositions = this.gameState.enemyPositions.filter(
-        (character) => character.position !== tergetPos,
-      );
-      this.gameState.enemyTeam.characters = this.gameState.enemyTeam.characters.filter(
-        (character) => character.health > 0,
-      );
-    }
+    return new Promise((resolve) => {
+      // уменьшаем количество жизней
+      target.health -= damage;
+      if (target.health <= 0) {
+        // Атакованный персонаж умирает
+        this.gamePlay.showDeath(tergetPos).then(() => {
+          this.gameState.allPositionsCharacter = this.gameState.allPositionsCharacter.filter(
+            (character) => character.position !== tergetPos,
+          );
+          this.gameState.playerPositions = this.gameState.playerPositions.filter(
+            (character) => character.position !== tergetPos,
+          );
+          this.gameState.playerTeam.characters = this.gameState.playerTeam.characters.filter(
+            (character) => character.health > 0,
+          );
+          this.gameState.enemyPositions = this.gameState.enemyPositions.filter(
+            (character) => character.position !== tergetPos,
+          );
+          this.gameState.enemyTeam.characters = this.gameState.enemyTeam.characters.filter(
+            (character) => character.health > 0,
+          );
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    });
   }
 
   onCellClick(index) {
@@ -213,18 +219,19 @@ export default class GameController {
         if (this.selectedCharacter) {
           if (this.isAttackAllowed(this.selectedCharacter, clickedCharacter.position)) {
             const { character: attacker } = this.selectedCharacter;
-            // const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
-            const damage = 110; // todo del
+            const { character: target } = clickedCharacter;
+            const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
             this.gamePlay.showDamage(index, damage).then(() => {
               // уменьшаем количество жизней и убираем мертвого персонажа
-              this._calcDamageAndKill(clickedCharacter, damage);
-              this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
-              // если не осталось персонажей у противника, то делаем новый уровень
-              if (this.gameState.enemyPositions.length === 0) {
-                this._levelUp(true);
-              }
-              this.gameState.score += damage;
-              this.gamePlay.updateCurrentScore(this.gameState.score);
+              this._calcDamageAndKill(clickedCharacter, damage).then(() => {
+                this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
+                // если не осталось персонажей у противника, то делаем новый уровень
+                if (this.gameState.enemyPositions.length === 0) {
+                  this._levelUp(true);
+                }
+                this.gameState.score += damage;
+                this.gamePlay.updateCurrentScore(this.gameState.score);
+              });
             }, (err) => {
               console.log(err);
             });
@@ -232,7 +239,8 @@ export default class GameController {
             console.log('attack not allowed');
           }
         } else {
-          GamePlay.showError('Select a player character!');
+          // GamePlay.showError('Select a player character!');
+          this.gamePlay.showMessage(index, '\u26A0');
         }
         this.gameState.switchPlayer();
         return;

@@ -220,8 +220,20 @@ export default class GamePlay {
     alert(message);
   }
 
-  static showMessage(message) {
-    alert(message);
+  showMessage(index, message) {
+    // alert(message);
+    return new Promise((resolve) => {
+      const cell = this.cells[index];
+      const damageEl = document.createElement('span');
+      damageEl.textContent = message;
+      damageEl.classList.add('damage');
+      cell.appendChild(damageEl);
+
+      damageEl.addEventListener('animationend', () => {
+        cell.removeChild(damageEl);
+        resolve();
+      });
+    });
   }
 
   selectCell(index, color = 'yellow') {
@@ -253,6 +265,21 @@ export default class GamePlay {
 
       damageEl.addEventListener('animationend', () => {
         cell.removeChild(damageEl);
+        resolve();
+      });
+    });
+  }
+
+  showDeath(index) {
+    return new Promise((resolve) => {
+      const cell = this.cells[index];
+      const deathEl = document.createElement('span');
+      deathEl.textContent = '\u2620';
+      deathEl.classList.add('damage');
+      cell.appendChild(deathEl);
+
+      deathEl.addEventListener('animationend', () => {
+        cell.removeChild(deathEl);
         resolve();
       });
     });
