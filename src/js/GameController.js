@@ -55,6 +55,8 @@ export default class GameController {
     const level = Object.keys(themes)[this.gameState.level - 1];
     this.gamePlay.drawUi(level);
 
+    this._loadMaxScore();
+
     this.selectedCharacter = undefined;
 
     // teams building
@@ -77,6 +79,20 @@ export default class GameController {
       .concat(this.gameState.enemyPositions);
 
     this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
+
+    this.gamePlay.updateMaxScore(this.gameState.maxScore);
+  }
+
+  _updateMaxScore(currentScore) {
+    if (currentScore > this.gameState.maxScore) {
+      this.gameState.maxScore = currentScore;
+    }
+    // отобразим
+    this.gamePlay.updateMaxScore(this.gameState.maxScore);
+    // сохраним
+    this.stateService.saveMaxScore({
+      maxScore: this.gameState.maxScore,
+    });
   }
 
   _saveGame() {
@@ -86,14 +102,33 @@ export default class GameController {
     console.log('saved');
   }
 
+  _loadMaxScore() {
+    const { maxScore } = this.stateService.loadMaxScore();
+    if (maxScore) {
+      this.gameState.maxScore = maxScore;
+      this.gamePlay.updateMaxScore(maxScore);
+    }
+  }
+
+  _saveMaxScore() {
+    this.stateService.save({
+      maxScore: this.gameState.maxScore,
+    });
+  }
+
   _loadGame() {
     const { gameState } = this.stateService.load();
-    this.gameState = GameState.fromObject(gameState);
-    const level = Object.keys(themes)[this.gameState.level - 1];
-    this.gamePlay.drawUi(level);
-    this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
-    this.gamePlay.updateCurrentScore(this.gameState.score);
-    console.log('laoded');
+    if (gameState) {
+      this.gameState = GameState.fromObject(gameState);
+      const level = Object.keys(themes)[this.gameState.level - 1];
+      this.gamePlay.drawUi(level);
+      this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
+      this.gamePlay.updateCurrentScore(this.gameState.score);
+      this._loadMaxScore();
+      console.log('laoded');
+    } else {
+      GamePlay.showError('Failed to load game state');
+    }
   }
 
   /**
@@ -231,6 +266,7 @@ export default class GameController {
                 }
                 this.gameState.score += damage;
                 this.gamePlay.updateCurrentScore(this.gameState.score);
+                this._updateMaxScore(this.gameState.score);
               });
             }, (err) => {
               console.log(err);

@@ -6,7 +6,7 @@ export default class GameState {
     this.currentPlayer = 'player'; // Изначально текущий ход у игрока
     this._level = 1;
     this.score = 0;
-    this.maxSrore = 0;
+    this.maxScore = 0;
     this.playerTeam = undefined;
     this.enemyTeam = undefined;
     this.playerPositions = [];

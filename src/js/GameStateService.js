@@ -14,4 +14,16 @@ export default class GameStateService {
       throw new Error('Invalid state');
     }
   }
+
+  saveMaxScore(state) {
+    this.storage.setItem('maxScore', JSON.stringify(state));
+  }
+
+  loadMaxScore() {
+    try {
+      return JSON.parse(this.storage.getItem('maxScore'));
+    } catch (e) {
+      throw new Error('Invalid state');
+    }
+  }
 }
