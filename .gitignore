@@ -1,3 +1,5 @@
-*
+/**
 !.gitignore
 !dist/
+!dist/*
+src/js/GameController.js
