@@ -5,6 +5,7 @@ import GameStateService from '../GameStateService';
 import Undead from '../characters/undead';
 import Vampire from '../characters/vampire';
 import PositionedCharacter from '../PositionedCharacter';
+import { loadGame } from '../utils';
 
 jest.mock('../GameStateService');
 jest.mock('../GamePlay');
@@ -58,7 +59,7 @@ describe('GameController load game', () => {
     gameStateServiceMock.load.mockReturnValue(expectedLoad);
     gameStateServiceMock.loadMaxScore.mockReturnValue([]);
 
-    gameController._loadGame();
+    loadGame(gameController);
 
     // Проверяем, что метод load был вызван
     expect(gameStateServiceMock.load).toHaveBeenCalledTimes(1);
@@ -72,7 +73,7 @@ describe('GameController load game', () => {
 
     gameStateServiceMock.load.mockReturnValue(new Error(errorMessage));
 
-    gameController._loadGame();
+    loadGame(gameController, GamePlay.showError);
 
     expect(GamePlay.showError).toHaveBeenCalledWith(errorMessage);
   });

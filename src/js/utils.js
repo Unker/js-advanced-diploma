@@ -1,3 +1,6 @@
+import GameState from './GameState';
+import themes from './themes';
+
 /**
  * @param index - индекс поля
  * @param boardSize - размер квадратного поля (в длину или ширину)
@@ -59,4 +62,35 @@ export function calcHealthLevel(health) {
   }
 
   return 'high';
+}
+
+/**
+ *
+ * @param gameController - instance of GameController
+ */
+export function saveGame(gameController) {
+  gameController.stateService.save({
+    gameState: gameController.gameState,
+  });
+  console.log('saved');
+}
+
+/**
+ *
+ * @param gameController  - instance of GameController
+ */
+export function loadGame(gameController, error) {
+  const gc = gameController;
+  const { gameState } = gc.stateService.load();
+  if (gameState) {
+    gc.gameState = GameState.fromObject(gameState);
+    const level = Object.keys(themes)[gc.gameState.level - 1];
+    gc.gamePlay.drawUi(level);
+    gc.gamePlay.redrawPositions(gc.gameState.allPositionsCharacter);
+    gc.gamePlay.updateCurrentScore(gc.gameState.score);
+    gc._loadMaxScore();
+    console.log('laoded');
+  } else {
+    error('Failed to load game state');
+  }
 }

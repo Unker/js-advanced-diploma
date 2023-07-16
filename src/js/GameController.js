@@ -9,9 +9,10 @@ import Character from './Character';
 import { generateTeam } from './generators';
 import PositionedCharacter from './PositionedCharacter';
 import GameState from './GameState';
-import GamePlay from './GamePlay';
 import cursors from './cursors';
 import GameStateService from './GameStateService';
+import GamePlay from './GamePlay';
+import { saveGame, loadGame } from './utils';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -29,8 +30,8 @@ export default class GameController {
     this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
     this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
     this.gamePlay.addNewGameListener(this._startNewGame.bind(this));
-    this.gamePlay.addSaveGameListener(this._saveGame.bind(this));
-    this.gamePlay.addLoadGameListener(this._loadGame.bind(this));
+    this.gamePlay.addSaveGameListener(saveGame.bind(this, this));
+    this.gamePlay.addLoadGameListener(loadGame.bind(this, this, GamePlay.showError));
 
     this._startNewGame();
 
@@ -64,7 +65,7 @@ export default class GameController {
 
     this.gameState.enemyTeam = generateTeam(enemyTypes, this._maxLevel, this._characterCount);
 
-    // Draws positions
+    // Get positions
     this.gameState.playerPositions = this._generatePositions(
       this.gameState.playerTeam.characters,
       5,
@@ -95,13 +96,6 @@ export default class GameController {
     });
   }
 
-  _saveGame() {
-    this.stateService.save({
-      gameState: this.gameState,
-    });
-    console.log('saved');
-  }
-
   _loadMaxScore() {
     const { maxScore } = this.stateService.loadMaxScore();
     if (maxScore) {
@@ -114,21 +108,6 @@ export default class GameController {
     this.stateService.save({
       maxScore: this.gameState.maxScore,
     });
-  }
-
-  _loadGame() {
-    const { gameState } = this.stateService.load();
-    if (gameState) {
-      this.gameState = GameState.fromObject(gameState);
-      const level = Object.keys(themes)[this.gameState.level - 1];
-      this.gamePlay.drawUi(level);
-      this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
-      this.gamePlay.updateCurrentScore(this.gameState.score);
-      this._loadMaxScore();
-      console.log('laoded');
-    } else {
-      GamePlay.showError('Failed to load game state');
-    }
   }
 
   /**
@@ -275,7 +254,6 @@ export default class GameController {
             console.log('attack not allowed');
           }
         } else {
-          // GamePlay.showError('Select a player character!');
           this.gamePlay.showMessage(index, '\u26A0');
         }
         this.gameState.switchPlayer();
