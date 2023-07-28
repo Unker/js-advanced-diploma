@@ -12,7 +12,7 @@ import GameState from './GameState';
 import cursors from './cursors';
 import GameStateService from './GameStateService';
 import GamePlay from './GamePlay';
-import { saveGame, loadGame } from './utils';
+import { saveGame, loadGame, getRandomNumber } from './utils';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -143,17 +143,13 @@ export default class GameController {
 
     do {
       // Случайная строка
-      const row = GameController.getRandomNumber(0, this.gamePlay.boardSize - 1);
+      const row = getRandomNumber(0, this.gamePlay.boardSize - 1);
       // Случайный столбец
-      const column = GameController.getRandomNumber(startColumn, endColumn);
+      const column = getRandomNumber(startColumn, endColumn);
       position = row * this.gamePlay.boardSize + column - 1;
     } while (positions.includes(position));
 
     return position;
-  }
-
-  static getRandomNumber(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
   _getPositionCharacter(index) {
