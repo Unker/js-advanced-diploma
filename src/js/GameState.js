@@ -18,31 +18,26 @@ export default class GameState {
     const gameState = new GameState();
     Object.assign(gameState, object);
 
-    if (object && object.playerTeam) {
-      gameState.playerTeam = Team.fromObject(object.playerTeam);
+    if (!object) {
+      return gameState;
     }
 
-    if (object && object.enemyTeam) {
-      gameState.enemyTeam = Team.fromObject(object.enemyTeam);
-    }
+    gameState.playerTeam = Team.fromObject(object.playerTeam);
+    gameState.enemyTeam = Team.fromObject(object.enemyTeam);
 
-    if (object && object.playerPositions) {
-      gameState.playerPositions = [];
-      gameState.playerTeam.characters.forEach((character, index) => {
-        const { position } = object.playerPositions[index];
-        const positionedCharacter = new PositionedCharacter(character, position);
-        gameState.playerPositions.push(positionedCharacter);
-      });
-    }
+    gameState.playerPositions = [];
+    gameState.playerTeam.characters.forEach((character, index) => {
+      const { position } = object.playerPositions[index];
+      const positionedCharacter = new PositionedCharacter(character, position);
+      gameState.playerPositions.push(positionedCharacter);
+    });
 
-    if (object && object.enemyPositions) {
-      gameState.enemyPositions = [];
-      gameState.enemyTeam.characters.forEach((character, index) => {
-        const { position } = object.enemyPositions[index];
-        const positionedCharacter = new PositionedCharacter(character, position);
-        gameState.enemyPositions.push(positionedCharacter);
-      });
-    }
+    gameState.enemyPositions = [];
+    gameState.enemyTeam.characters.forEach((character, index) => {
+      const { position } = object.enemyPositions[index];
+      const positionedCharacter = new PositionedCharacter(character, position);
+      gameState.enemyPositions.push(positionedCharacter);
+    });
 
     gameState.allPositionsCharacter = gameState.playerPositions.concat(gameState.enemyPositions);
 

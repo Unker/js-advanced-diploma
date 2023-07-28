@@ -34,9 +34,21 @@ describe('GameController load game', () => {
       ],
     };
 
+    const enemyTeamMock = {
+      characters: [
+        new Undead(1),
+        new Vampire(1),
+      ],
+    };
+
     const playerPositionsMock = [
       new PositionedCharacter(playerTeamMock.characters[0], 0),
       new PositionedCharacter(playerTeamMock.characters[1], 1),
+    ];
+
+    const enemyPositionsMock = [
+      new PositionedCharacter(enemyTeamMock.characters[0], 0),
+      new PositionedCharacter(enemyTeamMock.characters[1], 1),
     ];
 
     const expectedLoad = {
@@ -46,9 +58,9 @@ describe('GameController load game', () => {
         score: 0,
         maxScore: 0,
         playerTeam: JSON.parse(JSON.stringify(playerTeamMock)),
-        enemyTeam: undefined,
+        enemyTeam: JSON.parse(JSON.stringify(enemyTeamMock)),
         playerPositions: JSON.parse(JSON.stringify(playerPositionsMock)),
-        enemyPositions: undefined,
+        enemyPositions: JSON.parse(JSON.stringify(enemyPositionsMock)),
         allPositionsCharacter: JSON.parse(JSON.stringify(playerPositionsMock)),
       },
     };
