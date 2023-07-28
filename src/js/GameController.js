@@ -166,9 +166,6 @@ export default class GameController {
       // повышаем уровень у выживших
       this.gameState.playerPositions.forEach((e) => e.character.levelUp(1));
     }
-
-    // переинициализируем с новыми персонажами противника
-    this.#startNewGameLevel();
   }
 
   #moveCharacter(index) {
@@ -238,6 +235,8 @@ export default class GameController {
                 // если не осталось персонажей у противника, то делаем новый уровень
                 if (this.gameState.enemyPositions.length === 0) {
                   this.#levelUp(true);
+                  // переинициализируем с новыми персонажами противника
+                  this.#startNewGameLevel();
                 }
                 this.gameState.score += damage;
                 this.gamePlay.updateCurrentScore(this.gameState.score);
