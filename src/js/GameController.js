@@ -29,34 +29,34 @@ export default class GameController {
     this.gamePlay.addCellEnterListener(this.onCellEnter.bind(this));
     this.gamePlay.addCellLeaveListener(this.onCellLeave.bind(this));
     this.gamePlay.addCellClickListener(this.onCellClick.bind(this));
-    this.gamePlay.addNewGameListener(this._startNewGame.bind(this));
+    this.gamePlay.addNewGameListener(this.#startNewGame.bind(this));
     this.gamePlay.addSaveGameListener(saveGame.bind(this, this));
     this.gamePlay.addLoadGameListener(loadGame.bind(this, this, GamePlay.showError));
 
-    this._startNewGame();
+    this.#startNewGame();
 
     // load saved stated from stateService
     this.stateService = new GameStateService(localStorage);
   }
 
-  _startNewGame() {
+  #startNewGame() {
     this.gameState = new GameState();
 
     // команду игроку генерим только один раз - в начале игры
     const playerTypes = [Bowman, Swordsman, Magician];
     this.gameState.playerTeam = generateTeam(playerTypes, this._maxLevel, this._characterCount);
 
-    this._startNewGameLevel();
+    this.#startNewGameLevel();
   }
 
-  _startNewGameLevel() {
+  #startNewGameLevel() {
     // первым всегда начинает игрок
     this.gameState.currentPlayer = 'player';
 
     const level = Object.keys(themes)[this.gameState.level - 1];
     this.gamePlay.drawUi(level);
 
-    this._loadMaxScore();
+    this.loadMaxScore();
 
     this.selectedCharacter = undefined;
 
@@ -66,12 +66,12 @@ export default class GameController {
     this.gameState.enemyTeam = generateTeam(enemyTypes, this._maxLevel, this._characterCount);
 
     // Get positions
-    this.gameState.playerPositions = this._generatePositions(
+    this.gameState.playerPositions = this.generatePositions(
       this.gameState.playerTeam.characters,
       5,
       6,
     );
-    this.gameState.enemyPositions = this._generatePositions(
+    this.gameState.enemyPositions = this.generatePositions(
       this.gameState.enemyTeam.characters,
       7,
       8,
@@ -84,7 +84,7 @@ export default class GameController {
     this.gamePlay.updateMaxScore(this.gameState.maxScore);
   }
 
-  _updateMaxScore(currentScore) {
+  #updateMaxScore(currentScore) {
     if (currentScore > this.gameState.maxScore) {
       this.gameState.maxScore = currentScore;
     }
@@ -96,7 +96,7 @@ export default class GameController {
     });
   }
 
-  _loadMaxScore() {
+  loadMaxScore() {
     const { maxScore } = this.stateService.loadMaxScore();
     if (maxScore) {
       this.gameState.maxScore = maxScore;
@@ -104,7 +104,7 @@ export default class GameController {
     }
   }
 
-  _saveMaxScore() {
+  #saveMaxScore() {
     this.stateService.save({
       maxScore: this.gameState.maxScore,
     });
@@ -116,7 +116,7 @@ export default class GameController {
    * @param {*} characters
    * @returns
    */
-  _generatePositions(characters, startColumn, endColumn) {
+  generatePositions(characters, startColumn, endColumn) {
     const positions = [];
     const positionsCharacter = [];
     characters.forEach((character) => {
@@ -152,12 +152,12 @@ export default class GameController {
     return position;
   }
 
-  _getPositionCharacter(index) {
+  #getPositionCharacter(index) {
     return this.gameState.allPositionsCharacter
       .find((position) => position.position === index);
   }
 
-  _levelUp(isWin) {
+  #levelUp(isWin) {
     console.log('level up');
     if (this.gameState.level === 4 || isWin === false) {
       console.log('Game over');
@@ -168,10 +168,10 @@ export default class GameController {
     }
 
     // переинициализируем с новыми персонажами противника
-    this._startNewGameLevel();
+    this.#startNewGameLevel();
   }
 
-  _moveCharacter(index) {
+  #moveCharacter(index) {
     const moveable = this.gamePlay.cells[index].classList.contains('selected-green');
     if (this.selectedCharacter && moveable) {
       this.gamePlay.deselectCell(this.selectedCharacter.position);
@@ -182,7 +182,7 @@ export default class GameController {
     }
   }
 
-  _calcDamageAndKill(targetCharacter, damage) {
+  #calcDamageAndKill(targetCharacter, damage) {
     const { character: target, position: tergetPos } = targetCharacter;
     return new Promise((resolve) => {
       // уменьшаем количество жизней
@@ -215,11 +215,11 @@ export default class GameController {
 
   onCellClick(index) {
     if (this.gameState.currentPlayer === 'player') {
-      const clickedCharacter = this._getPositionCharacter(index);
+      const clickedCharacter = this.#getPositionCharacter(index);
 
       if (!clickedCharacter) {
         // кликнули на пустое поле. Делаем перемещение, если ранее выбран персонаж
-        this._moveCharacter(index);
+        this.#moveCharacter(index);
         this.gameState.switchPlayer();
         return;
       }
@@ -233,15 +233,15 @@ export default class GameController {
             const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
             this.gamePlay.showDamage(index, damage).then(() => {
               // уменьшаем количество жизней и убираем мертвого персонажа
-              this._calcDamageAndKill(clickedCharacter, damage).then(() => {
+              this.#calcDamageAndKill(clickedCharacter, damage).then(() => {
                 this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
                 // если не осталось персонажей у противника, то делаем новый уровень
                 if (this.gameState.enemyPositions.length === 0) {
-                  this._levelUp(true);
+                  this.#levelUp(true);
                 }
                 this.gameState.score += damage;
                 this.gamePlay.updateCurrentScore(this.gameState.score);
-                this._updateMaxScore(this.gameState.score);
+                this.#updateMaxScore(this.gameState.score);
               });
             }, (err) => {
               console.log(err);
@@ -270,7 +270,7 @@ export default class GameController {
 
   onCellEnter(index) {
     if (this.gameState.currentPlayer === 'player') {
-      const targetCharacter = this._getPositionCharacter(index);
+      const targetCharacter = this.#getPositionCharacter(index);
 
       // Если курсор на персонаже
       if (targetCharacter) {
@@ -351,7 +351,7 @@ export default class GameController {
 
     const { character } = selectedCharacter;
     const { position } = selectedCharacter;
-    const { rowDistance, columnDistance } = this._calcDistance(position, targetPosition);
+    const { rowDistance, columnDistance } = this.#calcDistance(position, targetPosition);
 
     switch (character.constructor) {
       case Swordsman:
@@ -367,7 +367,7 @@ export default class GameController {
     }
   }
 
-  _calcDistance(currentPosition, targetPosition) {
+  #calcDistance(currentPosition, targetPosition) {
     const targetRow = Math.floor(targetPosition / this.gamePlay.boardSize);
     const targetColumn = targetPosition % this.gamePlay.boardSize;
     const currentRow = Math.floor(currentPosition / this.gamePlay.boardSize);
@@ -381,13 +381,13 @@ export default class GameController {
 
   isMoveAllowed(selectedCharacter, targetPosition) {
     // перемещение на другого персонажа недопустимо
-    if (this._getPositionCharacter(targetPosition)) {
+    if (this.#getPositionCharacter(targetPosition)) {
       return false;
     }
 
     const { character } = selectedCharacter;
     const { position } = selectedCharacter;
-    const { rowDistance, columnDistance } = this._calcDistance(position, targetPosition);
+    const { rowDistance, columnDistance } = this.#calcDistance(position, targetPosition);
 
     switch (character.constructor) {
       case Swordsman:

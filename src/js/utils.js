@@ -88,7 +88,7 @@ export function loadGame(gameController, error) {
     gc.gamePlay.drawUi(level);
     gc.gamePlay.redrawPositions(gc.gameState.allPositionsCharacter);
     gc.gamePlay.updateCurrentScore(gc.gameState.score);
-    gc._loadMaxScore();
+    gc.loadMaxScore();
     console.log('laoded');
   } else {
     error('Failed to load game state');

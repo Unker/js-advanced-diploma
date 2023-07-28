@@ -18,7 +18,7 @@ describe('GameController _generatePositions method', () => {
     const startColumn = 1;
     const endColumn = 2;
 
-    const positions = gameController._generatePositions(characters, startColumn, endColumn);
+    const positions = gameController.generatePositions(characters, startColumn, endColumn);
 
     expect(positions).toHaveLength(characters.length);
 
