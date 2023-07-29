@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --coverage",
+    "test": "jest",
+    "coverage": "jest --coverage",
     "prepare": "husky install",
     "build": "webpack --mode production",
     "start": "webpack serve --mode development",
