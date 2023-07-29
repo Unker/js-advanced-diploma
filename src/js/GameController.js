@@ -179,38 +179,32 @@ export default class GameController {
     }
   }
 
-  #calcDamageAndKill(targetCharacter, damage) {
+  async #calcDamageAndKill(targetCharacter, damage) {
     const { character: target, position: tergetPos } = targetCharacter;
-    return new Promise((resolve) => {
-      // уменьшаем количество жизней
-      target.health -= damage;
-      if (target.health <= 0) {
-        // Атакованный персонаж умирает
-        this.gamePlay.showDeath(tergetPos).then(() => {
-          this.gameState.allPositionsCharacter = this.gameState.allPositionsCharacter.filter(
-            (character) => character.position !== tergetPos,
-          );
-          this.gameState.playerPositions = this.gameState.playerPositions.filter(
-            (character) => character.position !== tergetPos,
-          );
-          this.gameState.playerTeam.characters = this.gameState.playerTeam.characters.filter(
-            (character) => character.health > 0,
-          );
-          this.gameState.enemyPositions = this.gameState.enemyPositions.filter(
-            (character) => character.position !== tergetPos,
-          );
-          this.gameState.enemyTeam.characters = this.gameState.enemyTeam.characters.filter(
-            (character) => character.health > 0,
-          );
-          resolve();
-        });
-      } else {
-        resolve();
-      }
-    });
+    // уменьшаем количество жизней
+    target.health -= damage;
+    if (target.health <= 0) {
+      // Атакованный персонаж умирает
+      await this.gamePlay.showDeath(tergetPos);
+      this.gameState.allPositionsCharacter = this.gameState.allPositionsCharacter.filter(
+        (character) => character.position !== tergetPos,
+      );
+      this.gameState.playerPositions = this.gameState.playerPositions.filter(
+        (character) => character.position !== tergetPos,
+      );
+      this.gameState.playerTeam.characters = this.gameState.playerTeam.characters.filter(
+        (character) => character.health > 0,
+      );
+      this.gameState.enemyPositions = this.gameState.enemyPositions.filter(
+        (character) => character.position !== tergetPos,
+      );
+      this.gameState.enemyTeam.characters = this.gameState.enemyTeam.characters.filter(
+        (character) => character.health > 0,
+      );
+    }
   }
 
-  onCellClick(index) {
+  async onCellClick(index) {
     if (this.gameState.currentPlayer === 'player') {
       const clickedCharacter = this.#getPositionCharacter(index);
 
@@ -228,23 +222,19 @@ export default class GameController {
             const { character: attacker } = this.selectedCharacter;
             const { character: target } = clickedCharacter;
             const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
-            this.gamePlay.showDamage(index, damage).then(() => {
-              // уменьшаем количество жизней и убираем мертвого персонажа
-              this.#calcDamageAndKill(clickedCharacter, damage).then(() => {
-                this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
-                // если не осталось персонажей у противника, то делаем новый уровень
-                if (this.gameState.enemyPositions.length === 0) {
-                  this.#levelUp(true);
-                  // переинициализируем с новыми персонажами противника
-                  this.#startNewGameLevel();
-                }
-                this.gameState.score += damage;
-                this.gamePlay.updateCurrentScore(this.gameState.score);
-                this.#updateMaxScore(this.gameState.score);
-              });
-            }, (err) => {
-              console.log(err);
-            });
+            await this.gamePlay.showDamage(index, damage);
+            // уменьшаем количество жизней и убираем мертвого персонажа
+            await this.#calcDamageAndKill(clickedCharacter, damage);
+            this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
+            // если не осталось персонажей у противника, то делаем новый уровень
+            if (this.gameState.enemyPositions.length === 0) {
+              this.#levelUp(true);
+              // переинициализируем с новыми персонажами противника
+              this.#startNewGameLevel();
+            }
+            this.gameState.score += damage;
+            this.gamePlay.updateCurrentScore(this.gameState.score);
+            this.#updateMaxScore(this.gameState.score);
           } else {
             console.log('attack not allowed');
           }
