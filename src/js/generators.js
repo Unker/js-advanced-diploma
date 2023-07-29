@@ -28,13 +28,12 @@ export function* characterGenerator(allowedTypes, maxLevel) {
  * Количество персонажей в команде - characterCount
  * */
 export function generateTeam(allowedTypes, maxLevel, characterCount) {
-  const teamCharacters = [];
-
+  const team = new Team();
   const generator = characterGenerator(allowedTypes, maxLevel);
   for (let i = 0; i < characterCount; i += 1) {
     const character = generator.next().value;
-    teamCharacters.push(character);
+    team.add(character);
   }
 
-  return new Team(teamCharacters);
+  return team;
 }

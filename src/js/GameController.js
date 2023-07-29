@@ -34,7 +34,7 @@ export default class GameController {
     this.gamePlay.addLoadGameListener(loadGame.bind(this, this, GamePlay.showError));
 
     this.#startNewGame();
-
+    window.pl = this.gameState.playerTeam;
     // load saved stated from stateService
     this.stateService = new GameStateService(localStorage);
   }
@@ -192,15 +192,11 @@ export default class GameController {
       this.gameState.playerPositions = this.gameState.playerPositions.filter(
         (character) => character.position !== tergetPos,
       );
-      this.gameState.playerTeam.characters = this.gameState.playerTeam.characters.filter(
-        (character) => character.health > 0,
-      );
       this.gameState.enemyPositions = this.gameState.enemyPositions.filter(
         (character) => character.position !== tergetPos,
       );
-      this.gameState.enemyTeam.characters = this.gameState.enemyTeam.characters.filter(
-        (character) => character.health > 0,
-      );
+      this.gameState.playerTeam.refresh();
+      this.gameState.enemyTeam.refresh();
     }
   }
 
@@ -330,7 +326,7 @@ export default class GameController {
   }
 
   isPlayerCharacter(character) {
-    return this.gameState.playerTeam.characters.includes(character);
+    return this.gameState.playerTeam.has(character);
   }
 
   isAttackAllowed(selectedCharacter, targetPosition) {
