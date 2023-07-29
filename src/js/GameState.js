@@ -17,12 +17,11 @@ export default class GameState {
     this.enemyTeam = undefined;
     this.playerPositions = [];
     this.enemyPositions = [];
-    this.allPositionsCharacter = [];
   }
 
-  // get allPositionsCharacter() {
-  //   return this.playerPositions.concat(this.enemyPositions);
-  // }
+  get allPositionsCharacter() {
+    return this.playerPositions.concat(this.enemyPositions);
+  }
 
   static #createCharater(object) {
     if (object) {
@@ -77,8 +76,6 @@ export default class GameState {
       const positionedCharacter = new PositionedCharacter(character, position);
       gameState.enemyPositions.push(positionedCharacter);
     });
-
-    gameState.allPositionsCharacter = gameState.playerPositions.concat(gameState.enemyPositions);
 
     return gameState;
   }

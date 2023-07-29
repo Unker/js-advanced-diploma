@@ -61,7 +61,6 @@ describe('GameController load game', () => {
         enemyTeam: JSON.parse(JSON.stringify(enemyTeamMock)),
         playerPositions: JSON.parse(JSON.stringify(playerPositionsMock)),
         enemyPositions: JSON.parse(JSON.stringify(enemyPositionsMock)),
-        allPositionsCharacter: JSON.parse(JSON.stringify(playerPositionsMock)),
       },
     };
     const expectedGameState = GameState.fromObject(expectedLoad.gameState);

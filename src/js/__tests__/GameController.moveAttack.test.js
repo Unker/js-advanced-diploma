@@ -25,7 +25,7 @@ describe('GameController - Character Movement', () => {
       const character = new CharacterClass();
       const selectedCharacter = { character, position: 0 };
 
-      gameController.gameState.allPositionsCharacter = Array(selectedCharacter);
+      gameController.gameState.playerPositions = Array(selectedCharacter);
 
       const result = allPositions.filter((position) => gameController
         .isMoveAllowed(selectedCharacter, position));
@@ -37,7 +37,7 @@ describe('GameController - Character Movement', () => {
       const character = new CharacterClass();
       const selectedCharacter = { character, position: 0 };
 
-      gameController.allPositionsCharacter = Array(selectedCharacter);
+      gameController.playerPositions = Array(selectedCharacter);
 
       const result = allPositions.filter((position) => gameController
         .isAttackAllowed(selectedCharacter, position));

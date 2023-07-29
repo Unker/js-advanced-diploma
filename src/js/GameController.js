@@ -76,8 +76,6 @@ export default class GameController {
       7,
       8,
     );
-    this.gameState.allPositionsCharacter = this.gameState.playerPositions
-      .concat(this.gameState.enemyPositions);
 
     this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
 
@@ -186,9 +184,6 @@ export default class GameController {
     if (target.health <= 0) {
       // Атакованный персонаж умирает
       await this.gamePlay.showDeath(tergetPos);
-      this.gameState.allPositionsCharacter = this.gameState.allPositionsCharacter.filter(
-        (character) => character.position !== tergetPos,
-      );
       this.gameState.playerPositions = this.gameState.playerPositions.filter(
         (character) => character.position !== tergetPos,
       );
