@@ -9,7 +9,11 @@
     "prepare": "husky install",
     "build": "webpack --mode production",
     "start": "webpack serve --mode development",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "preshow:coverage": "npm run coverage",
+    "show:coverage": "live-server coverage/lcov-report",
+    "preshow:dist": "npm run build",
+    "show:dist": "live-server dist"
   },
   "repository": {
     "type": "git",
