@@ -14,11 +14,11 @@ export default class GameStateService {
   }
 
   load() {
-    try {
-      return JSON.parse(this.storage.getItem('state'));
-    } catch (e) {
-      throw new Error('Invalid state');
+    const state = this.storage.getItem('state');
+    if (state) {
+      return JSON.parse(state);
     }
+    return { state: undefined };
   }
 
   saveMaxScore(state) {
@@ -26,10 +26,10 @@ export default class GameStateService {
   }
 
   loadMaxScore() {
-    try {
-      return JSON.parse(this.storage.getItem('maxScore'));
-    } catch (e) {
-      throw new Error('Invalid state');
+    const maxScore = this.storage.getItem('maxScore');
+    if (maxScore) {
+      return JSON.parse(maxScore);
     }
+    return { maxScore: undefined };
   }
 }
