@@ -28,27 +28,27 @@ describe('GameController load game', () => {
 
   test('should load game state successfully', () => {
     const playerTeamMock = {
-      characters: [
+      members: [
         new Undead(1),
         new Vampire(1),
       ],
     };
 
     const enemyTeamMock = {
-      characters: [
+      members: [
         new Undead(1),
         new Vampire(1),
       ],
     };
 
     const playerPositionsMock = [
-      new PositionedCharacter(playerTeamMock.characters[0], 0),
-      new PositionedCharacter(playerTeamMock.characters[1], 1),
+      new PositionedCharacter(playerTeamMock.members[0], 0),
+      new PositionedCharacter(playerTeamMock.members[1], 1),
     ];
 
     const enemyPositionsMock = [
-      new PositionedCharacter(enemyTeamMock.characters[0], 0),
-      new PositionedCharacter(enemyTeamMock.characters[1], 1),
+      new PositionedCharacter(enemyTeamMock.members[0], 0),
+      new PositionedCharacter(enemyTeamMock.members[1], 1),
     ];
 
     const expectedLoad = {
@@ -64,7 +64,6 @@ describe('GameController load game', () => {
         allPositionsCharacter: JSON.parse(JSON.stringify(playerPositionsMock)),
       },
     };
-
     const expectedGameState = GameState.fromObject(expectedLoad.gameState);
 
     // Мокаем метод load в замоканном GameStateService

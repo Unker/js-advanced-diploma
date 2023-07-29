@@ -9,19 +9,11 @@ import Character from './Character';
 /**
  * Класс, представляющий персонажей команды
  *
- * @todo Самостоятельно продумайте хранение персонажей в классе
- * Например
- * @example
- * ```js
- * const characters = [new Swordsman(2), new Bowman(1)]
- * const team = new Team(characters);
- *
  * team.characters // [swordsman, bowman]
  * ```
  * */
 export default class Team {
   constructor() {
-    // this.characters = characters;
     this.members = new Set();
   }
 
@@ -55,32 +47,5 @@ export default class Team {
 
   get characters() {
     return Array.from(this.members);
-  }
-
-  static fromObject(object) {
-    const team = new Team();
-
-    if (object && object.members) {
-      team.characters = object.characters.map((characterObject) => {
-        switch (characterObject.type) {
-          case 'undead':
-            return new Undead(characterObject._level);
-          case 'vampire':
-            return new Vampire(characterObject._level);
-          case 'swordsman':
-            return new Swordsman(characterObject._level);
-          case 'magician':
-            return new Magician(characterObject._level);
-          case 'bowman':
-            return new Bowman(characterObject._level);
-          case 'daemon':
-            return new Daemon(characterObject._level);
-          default:
-            throw new Error(`Unknown character type: ${characterObject.type}`);
-        }
-      });
-    }
-
-    return team;
   }
 }

@@ -1,5 +1,11 @@
 import Team from './Team';
 import PositionedCharacter from './PositionedCharacter';
+import Undead from './characters/undead';
+import Vampire from './characters/vampire';
+import Swordsman from './characters/swordsman';
+import Magician from './characters/magician';
+import Bowman from './characters/bowman';
+import Daemon from './characters/daemon';
 
 export default class GameState {
   constructor() {
@@ -14,6 +20,32 @@ export default class GameState {
     this.allPositionsCharacter = [];
   }
 
+  // get allPositionsCharacter() {
+  //   return this.playerPositions.concat(this.enemyPositions);
+  // }
+
+  static #createCharater(object) {
+    if (object) {
+      switch (object.type) {
+        case 'undead':
+          return new Undead(object._level);
+        case 'vampire':
+          return new Vampire(object._level);
+        case 'swordsman':
+          return new Swordsman(object._level);
+        case 'magician':
+          return new Magician(object._level);
+        case 'bowman':
+          return new Bowman(object._level);
+        case 'daemon':
+          return new Daemon(object._level);
+        default:
+          throw new Error(`Unknown character type: ${object.type}`);
+      }
+    }
+    return undefined;
+  }
+
   static fromObject(object) {
     const gameState = new GameState();
     Object.assign(gameState, object);
@@ -22,9 +54,11 @@ export default class GameState {
       return gameState;
     }
 
-    gameState.playerTeam = Team.fromObject(object.playerTeam);
-    gameState.enemyTeam = Team.fromObject(object.enemyTeam);
-
+    gameState.playerTeam = new Team();
+    object.playerTeam.members.map((characterObject) => {
+      gameState.playerTeam.add(GameState.#createCharater(characterObject));
+      return null;
+    });
     gameState.playerPositions = [];
     gameState.playerTeam.characters.forEach((character, index) => {
       const { position } = object.playerPositions[index];
@@ -32,6 +66,11 @@ export default class GameState {
       gameState.playerPositions.push(positionedCharacter);
     });
 
+    gameState.enemyTeam = new Team();
+    object.enemyTeam.members.map((characterObject) => {
+      gameState.enemyTeam.add(GameState.#createCharater(characterObject));
+      return null;
+    });
     gameState.enemyPositions = [];
     gameState.enemyTeam.characters.forEach((character, index) => {
       const { position } = object.enemyPositions[index];
