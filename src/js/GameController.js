@@ -214,6 +214,15 @@ export default class GameController {
     const { character: target } = targetPosChar;
     const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
 
+    // debugger
+    if (this.gameState.isPlayerState) {
+      this.gameState.score += damage;
+    } else {
+      this.gameState.score -= damage;
+    }
+    this.gamePlay.updateCurrentScore(this.gameState.score);
+    this.#updateMaxScore(this.gameState.score);
+
     await this.gamePlay.showDamage(targetPosChar.position, damage);
     // уменьшаем количество жизней и убираем мертвого персонажа
     await this.#calcDamageAndKill(targetPosChar, damage);
@@ -231,14 +240,6 @@ export default class GameController {
       // todo
       console.log('You lose');
     }
-
-    if (this.gameState.isPlayerState) {
-      this.gameState.score += damage;
-    } else {
-      this.gameState.score -= damage;
-    }
-    this.gamePlay.updateCurrentScore(this.gameState.score);
-    this.#updateMaxScore(this.gameState.score);
   }
 
   async onCellClick(index) {

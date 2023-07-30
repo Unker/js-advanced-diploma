@@ -11,7 +11,7 @@ export default class GameState {
   constructor() {
     this.currentPlayer = 'player'; // Изначально текущий ход у игрока
     this._level = 1;
-    this.score = 0;
+    this._score = 0;
     this.maxScore = 0;
     this.playerTeam = undefined;
     this.enemyTeam = undefined;
@@ -23,10 +23,14 @@ export default class GameState {
     return this.playerPositions.concat(this.enemyPositions);
   }
 
-  // set score(value) {
-  //   this._score += value;
-  //   this._score = Math.max(0, this._score);
-  // }
+  get score() {
+    return this._score;
+  }
+
+  set score(value) {
+    this._score = value;
+    this._score = Math.max(0, this._score);
+  }
 
   static #createCharater(object) {
     if (object) {
