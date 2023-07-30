@@ -23,6 +23,11 @@ export default class GameState {
     return this.playerPositions.concat(this.enemyPositions);
   }
 
+  // set score(value) {
+  //   this._score += value;
+  //   this._score = Math.max(0, this._score);
+  // }
+
   static #createCharater(object) {
     if (object) {
       switch (object.type) {
@@ -91,8 +96,6 @@ export default class GameState {
   switchPlayer() {
     // Переключаем текущего игрока
     this.currentPlayer = this.isPlayerState ? 'computer' : 'player';
-    console.log('switch', this.currentPlayer);
-    // this.currentPlayer = 'player';
   }
 
   get level() {

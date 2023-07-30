@@ -14,6 +14,18 @@ export default class PositionedCharacter {
     this.position = position;
   }
 
+  static sortByAttack(positionedCharacter) {
+    positionedCharacter.sort((a, b) => b.character.attack - a.character.attack);
+    return positionedCharacter;
+  }
+
+  static getMaxAttackCharacter(positionedCharacter) {
+    return positionedCharacter.reduce((prev, current) => {
+      const ret = (prev.character.attack > current.character.attack) ? prev : current;
+      return ret;
+    });
+  }
+
   static fromObject(object) {
     const positionedCharacter = new PositionedCharacter();
     Object.assign(positionedCharacter, object);

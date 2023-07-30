@@ -98,3 +98,7 @@ export function loadGame(gameController, error) {
 export function getRandomNumber(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
+
+export function manhattanDistance(pos1, pos2) {
+  return Math.abs(pos1.row - pos2.row) + Math.abs(pos1.col - pos2.col);
+}

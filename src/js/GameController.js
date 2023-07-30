@@ -12,7 +12,9 @@ import GameState from './GameState';
 import cursors from './cursors';
 import GameStateService from './GameStateService';
 import GamePlay from './GamePlay';
-import { saveGame, loadGame, getRandomNumber } from './utils';
+import {
+  saveGame, loadGame, getRandomNumber, manhattanDistance,
+} from './utils';
 
 export default class GameController {
   constructor(gamePlay, stateService) {
@@ -152,9 +154,17 @@ export default class GameController {
     return position;
   }
 
-  #getPositionCharacter(index) {
+  // получить персонажа по номеру позиции
+  #getCharacterFromPosition(index) {
     return this.gameState.allPositionsCharacter
       .find((position) => position.position === index);
+  }
+
+  // получить номер позиции по персонажу
+  #getPositionFromCharacter(character) {
+    const positionedCharacter = this.gameState.allPositionsCharacter
+      .find((pasChar) => pasChar.character === character);
+    return positionedCharacter.position;
   }
 
   #levelUp(isWin) {
@@ -193,9 +203,42 @@ export default class GameController {
       this.gameState.enemyPositions = this.gameState.enemyPositions.filter(
         (character) => character.position !== tergetPos,
       );
-      this.gameState.playerTeam.refresh();
-      this.gameState.enemyTeam.refresh();
     }
+    this.gameState.playerTeam.refresh();
+    this.gameState.enemyTeam.refresh();
+  }
+
+  // выполнение атаки персонажа
+  async #executeAttack(attackerPosChar, targetPosChar) {
+    const { character: attacker } = attackerPosChar;
+    const { character: target } = targetPosChar;
+    const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
+
+    await this.gamePlay.showDamage(targetPosChar.position, damage);
+    // уменьшаем количество жизней и убираем мертвого персонажа
+    await this.#calcDamageAndKill(targetPosChar, damage);
+    this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
+
+    // если не осталось персонажей у противника, то делаем новый уровень
+    if (this.gameState.enemyPositions.length === 0) {
+      this.#levelUp(true);
+      // переинициализируем с новыми персонажами противника
+      this.#startNewGameLevel();
+    }
+
+    // если не осталось персонажей у игрока, то игра завершается
+    if (this.gameState.playerPositions.length === 0) {
+      // todo
+      console.log('You lose');
+    }
+
+    if (this.gameState.isPlayerState) {
+      this.gameState.score += damage;
+    } else {
+      this.gameState.score -= damage;
+    }
+    this.gamePlay.updateCurrentScore(this.gameState.score);
+    this.#updateMaxScore(this.gameState.score);
   }
 
   async onCellClick(index) {
@@ -204,7 +247,7 @@ export default class GameController {
       return;
     }
 
-    const clickedCharacter = this.#getPositionCharacter(index);
+    const clickedCharacter = this.#getCharacterFromPosition(index);
 
     if (!clickedCharacter) {
       // кликнули на пустое поле. Делаем перемещение, если ранее выбран персонаж
@@ -216,26 +259,14 @@ export default class GameController {
       // кликнули на персонаж противника. Проверяем возможность атаки
       if (this.selectedCharacter) {
         if (this.isAttackAllowed(this.selectedCharacter, clickedCharacter.position)) {
-          const { character: attacker } = this.selectedCharacter;
-          const { character: target } = clickedCharacter;
-          const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
-          await this.gamePlay.showDamage(index, damage);
-          // уменьшаем количество жизней и убираем мертвого персонажа
-          await this.#calcDamageAndKill(clickedCharacter, damage);
-          this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
-          // если не осталось персонажей у противника, то делаем новый уровень
-          if (this.gameState.enemyPositions.length === 0) {
-            this.#levelUp(true);
-            // переинициализируем с новыми персонажами противника
-            this.#startNewGameLevel();
-          }
-          this.gameState.score += damage;
-          this.gamePlay.updateCurrentScore(this.gameState.score);
-          this.#updateMaxScore(this.gameState.score);
+          await this.#executeAttack(this.selectedCharacter, clickedCharacter);
 
           // снять выделения персонажей
-          this.gamePlay.deselectCell(this.selectedCharacter.position);
+          if (this.selectedCharacter) {
+            this.gamePlay.deselectCell(this.selectedCharacter.position);
+          }
           this.gamePlay.deselectCell(index); // снять выделение хода
+          this.selectedCharacter = null;
 
           this.gameState.switchPlayer();
         } else {
@@ -260,7 +291,7 @@ export default class GameController {
   }
 
   onCellEnter(index) {
-    const targetCharacter = this.#getPositionCharacter(index);
+    const targetCharacter = this.#getCharacterFromPosition(index);
 
     // Если курсор на персонаже, то отобразим информацию о персонаже
     if (targetCharacter) {
@@ -286,7 +317,7 @@ export default class GameController {
           // перевыбор персонажа
           this.gamePlay.setCursor(cursors.pointer);
         } else if (targetCharacter
-            && this.isAttackAllowed(this.selectedCharacter, targetCharacter.position)
+          && this.isAttackAllowed(this.selectedCharacter, targetCharacter.position)
         ) {
           // атака противника
           this.gamePlay.setCursor(cursors.crosshair);
@@ -347,13 +378,13 @@ export default class GameController {
     return this.gameState.enemyTeam.has(character);
   }
 
-  isAttackAllowed(selectedCharacter, targetPosition) {
-    if (selectedCharacter.position === targetPosition) {
+  isAttackAllowed(selectedPositionedCharacter, targetPosition) {
+    if (selectedPositionedCharacter.position === targetPosition) {
       return false;
     }
 
-    const { character } = selectedCharacter;
-    const { position } = selectedCharacter;
+    const { character } = selectedPositionedCharacter;
+    const { position } = selectedPositionedCharacter;
     const { rowDistance, columnDistance } = this.#calcDistance(position, targetPosition);
 
     switch (character.constructor) {
@@ -384,7 +415,7 @@ export default class GameController {
 
   isMoveAllowed(selectedCharacter, targetPosition) {
     // перемещение на другого персонажа недопустимо
-    if (this.#getPositionCharacter(targetPosition)) {
+    if (this.#getCharacterFromPosition(targetPosition)) {
       return false;
     }
 
@@ -407,10 +438,132 @@ export default class GameController {
     }
   }
 
+  async #attackOneByOne(attacker, targets, step) {
+    if (step >= targets.length) {
+      return; // переблали всех или принудительно завешили
+    }
+
+    const targetCharacter = targets[step];
+    if (this.isAttackAllowed(attacker, targetCharacter.position)) {
+      this.isAttacking = true;
+      this.isAttackDone = true;
+      await this.#executeAttack(attacker, targetCharacter);
+      this.isAttacking = false;
+      return; // принудительно завершим рекурсивный обход
+    }
+
+    this.#attackOneByOne(attacker, targets, step + 1);
+  }
+
+  indexToRowCol(index) {
+    const row = Math.floor(index / this.gamePlay.boardSize);
+    const col = index % this.gamePlay.boardSize;
+    return { row, col };
+  }
+
+  rowColToIndex(row, col) {
+    return row * this.gamePlay.boardSize + col;
+  }
+
+  findNearestCharacter(startPos, targetCharacters) {
+    let minDistance = Infinity;
+    let nearestCharacter = null;
+
+    for (const character of targetCharacters) {
+      const characterPos = this.indexToRowCol(character.position);
+      const distance = manhattanDistance(startPos, characterPos);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestCharacter = character;
+      }
+    }
+
+    return nearestCharacter;
+  }
+
+  findPossibleDestinations(startPosChar, moveDistance) {
+    const startPos = this.indexToRowCol(startPosChar.position);
+    const { boardSize } = this.gamePlay;
+    const possibleDestinations = [];
+    for (let row = 0; row < boardSize; row += 1) {
+      for (let col = 0; col < boardSize; col += 1) {
+        const pos = { row, col };
+        const distance = manhattanDistance(startPos, pos);
+        if (distance <= moveDistance
+          && this.isMoveAllowed(startPosChar, this.rowColToIndex(row, col))
+        ) {
+          possibleDestinations.push(pos);
+        }
+      }
+    }
+    return possibleDestinations;
+  }
+
+  moveTowardsNearestCharacter(attackerPosChar, targetCharacters) {
+    const attacker = attackerPosChar.character;
+    const attackerPos = this.indexToRowCol(attackerPosChar.position);
+    const nearestCharacter = this.findNearestCharacter(attackerPos, targetCharacters);
+
+    if (!nearestCharacter) {
+      // No target characters found, no movement needed
+      return;
+    }
+
+    const possibleDestinations = this.findPossibleDestinations(
+      attackerPosChar,
+      attacker.moveDistance,
+    );
+
+    if (possibleDestinations.length === 0) {
+      // The attacker cannot move anywhere, no movement needed
+      return;
+    }
+
+    // Find the destination closest to the nearestCharacter
+    let minDistance = Infinity;
+    let destination = null;
+    const targetPosition = this.indexToRowCol(nearestCharacter.position);
+    for (const pos of possibleDestinations) {
+      const distance = manhattanDistance(pos, targetPosition);
+      if (distance < minDistance) {
+        minDistance = distance;
+        destination = pos;
+      }
+    }
+
+    // Move the attacker to the selected destination
+    const destinationIndex = this.rowColToIndex(destination.row, destination.col);
+    // eslint-disable-next-line no-param-reassign
+    attackerPosChar.position = destinationIndex;
+  }
+
   startTimer() {
+    this.isAttacking = false; // Флаг для проверки, идет ли атака
+    this.isAttackDone = false; // признак совершения атаки - перемещение не нужно
+
     // таймер хода компьютера
-    this.intervalEnemy = setInterval(() => {
-      if (this.gameState.isComputerState) {
+    this.intervalComputer = setInterval(async () => {
+      if (this.gameState.isComputerState && !this.isAttacking) {
+        // ход противника
+        this.isAttackDone = false;
+        // 1. Выбираем персонажа компьютера с максимальным уроном
+        const computerCharacter = PositionedCharacter.getMaxAttackCharacter(
+          this.gameState.enemyPositions,
+        );
+
+        // 2. Персонажа игрока с атакой по убыванию
+        const targetCharacters = PositionedCharacter.sortByAttack(this.gameState.playerPositions);
+
+        // 3. По возможности нанести урон персонажу с максимальной атакой
+        await this.#attackOneByOne(computerCharacter, targetCharacters, 0);
+
+        // 4. Если некому наносить урон, то делаем перемещение в сторону ближайшего персонажа
+        if (!this.isAttackDone) {
+          this.moveTowardsNearestCharacter(computerCharacter, targetCharacters);
+          this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
+        }
+
         this.gameState.switchPlayer();
       }
     }, 100);
