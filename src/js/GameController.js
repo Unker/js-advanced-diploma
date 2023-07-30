@@ -34,9 +34,11 @@ export default class GameController {
     this.gamePlay.addLoadGameListener(loadGame.bind(this, this, GamePlay.showError));
 
     this.#startNewGame();
-    window.pl = this.gameState.playerTeam;
+    window.gs = this.gameState;
     // load saved stated from stateService
     this.stateService = new GameStateService(localStorage);
+
+    this.startTimer();
   }
 
   #startNewGame() {
@@ -174,6 +176,7 @@ export default class GameController {
       this.selectedCharacter.position = index;
       this.gamePlay.selectCell(index); // установить выделение выбранного персонажа
       this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
+      this.gameState.switchPlayer();
     }
   }
 
@@ -196,88 +199,104 @@ export default class GameController {
   }
 
   async onCellClick(index) {
-    if (this.gameState.currentPlayer === 'player') {
-      const clickedCharacter = this.#getPositionCharacter(index);
-
-      if (!clickedCharacter) {
-        // кликнули на пустое поле. Делаем перемещение, если ранее выбран персонаж
-        this.#moveCharacter(index);
-        this.gameState.switchPlayer();
-        return;
-      }
-
-      if (!this.isPlayerCharacter(clickedCharacter.character)) {
-        // Это персонаж противника. Проверяем возможность атаки
-        if (this.selectedCharacter) {
-          if (this.isAttackAllowed(this.selectedCharacter, clickedCharacter.position)) {
-            const { character: attacker } = this.selectedCharacter;
-            const { character: target } = clickedCharacter;
-            const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
-            await this.gamePlay.showDamage(index, damage);
-            // уменьшаем количество жизней и убираем мертвого персонажа
-            await this.#calcDamageAndKill(clickedCharacter, damage);
-            this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
-            // если не осталось персонажей у противника, то делаем новый уровень
-            if (this.gameState.enemyPositions.length === 0) {
-              this.#levelUp(true);
-              // переинициализируем с новыми персонажами противника
-              this.#startNewGameLevel();
-            }
-            this.gameState.score += damage;
-            this.gamePlay.updateCurrentScore(this.gameState.score);
-            this.#updateMaxScore(this.gameState.score);
-          } else {
-            console.log('attack not allowed');
-          }
-        } else {
-          this.gamePlay.showMessage(index, '\u26A0');
-        }
-        this.gameState.switchPlayer();
-        return;
-      }
-
-      // Проверяем, есть ли уже выбранный персонаж
-      if (this.selectedCharacter) {
-        this.gamePlay.deselectCell(this.selectedCharacter.position);
-      }
-
-      // Выделяем текущую ячейку
-      this.gamePlay.selectCell(index);
-
-      this.selectedCharacter = clickedCharacter;
+    if (this.gameState.isComputerState) {
+      // ход противника. Игнорируем событие
+      return;
     }
+
+    const clickedCharacter = this.#getPositionCharacter(index);
+
+    if (!clickedCharacter) {
+      // кликнули на пустое поле. Делаем перемещение, если ранее выбран персонаж
+      this.#moveCharacter(index);
+      return;
+    }
+
+    if (this.isEnemyCharacter(clickedCharacter.character)) {
+      // кликнули на персонаж противника. Проверяем возможность атаки
+      if (this.selectedCharacter) {
+        if (this.isAttackAllowed(this.selectedCharacter, clickedCharacter.position)) {
+          const { character: attacker } = this.selectedCharacter;
+          const { character: target } = clickedCharacter;
+          const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
+          await this.gamePlay.showDamage(index, damage);
+          // уменьшаем количество жизней и убираем мертвого персонажа
+          await this.#calcDamageAndKill(clickedCharacter, damage);
+          this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
+          // если не осталось персонажей у противника, то делаем новый уровень
+          if (this.gameState.enemyPositions.length === 0) {
+            this.#levelUp(true);
+            // переинициализируем с новыми персонажами противника
+            this.#startNewGameLevel();
+          }
+          this.gameState.score += damage;
+          this.gamePlay.updateCurrentScore(this.gameState.score);
+          this.#updateMaxScore(this.gameState.score);
+
+          // снять выделения персонажей
+          this.gamePlay.deselectCell(this.selectedCharacter.position);
+          this.gamePlay.deselectCell(index); // снять выделение хода
+
+          this.gameState.switchPlayer();
+        } else {
+          console.log('attack not allowed');
+        }
+      } else {
+        // кликнули по противнику не выбрав атакующего персонажа
+        this.gamePlay.showMessage(index, '\u26A0');
+      }
+      return;
+    }
+
+    // Проверяем, есть ли уже выбранный персонаж
+    if (this.selectedCharacter) {
+      this.gamePlay.deselectCell(this.selectedCharacter.position);
+    }
+
+    // Выделяем текущую ячейку
+    this.gamePlay.selectCell(index);
+
+    this.selectedCharacter = clickedCharacter;
   }
 
   onCellEnter(index) {
-    if (this.gameState.currentPlayer === 'player') {
-      const targetCharacter = this.#getPositionCharacter(index);
+    const targetCharacter = this.#getPositionCharacter(index);
 
-      // Если курсор на персонаже
-      if (targetCharacter) {
-        const { character } = targetCharacter;
+    // Если курсор на персонаже, то отобразим информацию о персонаже
+    if (targetCharacter) {
+      const { character } = targetCharacter;
 
-        // всплывающая подсказка
-        const tooltipMessage = GameController.formatToolTip`${character}`;
-        this.gamePlay.showCellTooltip(tooltipMessage, index);
-        this.gamePlay.setCursor(cursors.pointer);
-      } else {
-        this.gamePlay.setCursor(cursors.auto);
-      }
+      // всплывающая подсказка
+      const tooltipMessage = GameController.formatToolTip`${character}`;
+      this.gamePlay.showCellTooltip(tooltipMessage, index);
+      this.gamePlay.setCursor(cursors.pointer);
+    } else {
+      this.gamePlay.setCursor(cursors.auto);
+    }
 
+    if (this.gameState.isComputerState) {
+      this.selectedCharacter = null;
+    }
+
+    if (this.gameState.isPlayerState) {
       // Если выбран персонаж, то проверяем доступные ходы перемещения и атак
       if (this.selectedCharacter) {
         // Проверяем возможные действия для выбранного персонажа
         if (targetCharacter && this.isPlayerCharacter(targetCharacter.character)) {
+          // перевыбор персонажа
           this.gamePlay.setCursor(cursors.pointer);
         } else if (targetCharacter
             && this.isAttackAllowed(this.selectedCharacter, targetCharacter.position)
         ) {
+          // атака противника
           this.gamePlay.setCursor(cursors.crosshair);
           this.gamePlay.selectCell(index, 'red');
         } else if (this.isMoveAllowed(this.selectedCharacter, index)) {
+          // ход персонажа
           this.gamePlay.setCursor(cursors.pointer);
           this.gamePlay.selectCell(index, 'green');
         } else {
+          // действие недоступно
           this.gamePlay.setCursor(cursors.notallowed);
         }
       }
@@ -322,6 +341,10 @@ export default class GameController {
 
   isPlayerCharacter(character) {
     return this.gameState.playerTeam.has(character);
+  }
+
+  isEnemyCharacter(character) {
+    return this.gameState.enemyTeam.has(character);
   }
 
   isAttackAllowed(selectedCharacter, targetPosition) {
@@ -382,5 +405,14 @@ export default class GameController {
       default:
         return false;
     }
+  }
+
+  startTimer() {
+    // таймер хода компьютера
+    this.intervalEnemy = setInterval(() => {
+      if (this.gameState.isComputerState) {
+        this.gameState.switchPlayer();
+      }
+    }, 100);
   }
 }

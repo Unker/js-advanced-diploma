@@ -80,10 +80,19 @@ export default class GameState {
     return gameState;
   }
 
+  get isPlayerState() {
+    return this.currentPlayer === 'player';
+  }
+
+  get isComputerState() {
+    return this.currentPlayer === 'computer';
+  }
+
   switchPlayer() {
     // Переключаем текущего игрока
-    // this.currentPlayer = this.currentPlayer === 'player' ? 'computer' : 'player';
-    this.currentPlayer = 'player';
+    this.currentPlayer = this.isPlayerState ? 'computer' : 'player';
+    console.log('switch', this.currentPlayer);
+    // this.currentPlayer = 'player';
   }
 
   get level() {
