@@ -259,6 +259,20 @@ export default class GamePlay {
     this.cells[index].classList.remove('moveable');
   }
 
+  showAttackCell(index) {
+    const attackEl = document.createElement('span');
+    attackEl.textContent = String.fromCodePoint(0x1F5E1);
+    attackEl.classList.add('crosshair');
+    this.cells[index].appendChild(attackEl);
+  }
+
+  hideAttackCell(index) {
+    const attackEl = this.cells[index].querySelector('.crosshair');
+    if (attackEl) {
+      attackEl.textContent = '';
+    }
+  }
+
   hideCellTooltip(index) {
     this.cells[index].title = '';
   }

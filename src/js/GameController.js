@@ -285,6 +285,7 @@ export default class GameController {
       this.gamePlay.selectCell(index);
 
       this.selectedCharacter = clickedCharacter;
+      this.showAttackCell();
 
       // подсветить доступные хода
       const possibleMoves = this.findPossibleMoves(this.selectedCharacter);
@@ -370,6 +371,18 @@ export default class GameController {
     }
 
     return result.join('');
+  }
+
+  showAttackCell() {
+    if (this.selectedCharacter) {
+      for (let index = 0; index < this.gamePlay.boardSize ** 2; index += 1) {
+        if (this.isAttackAllowed(this.selectedCharacter, index)) {
+          this.gamePlay.showAttackCell(index);
+        } else {
+          this.gamePlay.hideAttackCell(index);
+        }
+      }
+    }
   }
 
   hideMoveableCells() {
