@@ -251,6 +251,14 @@ export default class GamePlay {
     this.cells[index].title = message;
   }
 
+  showMoveableCell(index) {
+    this.cells[index].classList.add('moveable');
+  }
+
+  hideMoveableCell(index) {
+    this.cells[index].classList.remove('moveable');
+  }
+
   hideCellTooltip(index) {
     this.cells[index].title = '';
   }

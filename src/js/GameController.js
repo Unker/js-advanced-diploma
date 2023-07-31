@@ -181,10 +181,8 @@ export default class GameController {
   #moveCharacter(index) {
     const moveable = this.gamePlay.cells[index].classList.contains('selected-green');
     if (this.selectedCharacter && moveable) {
-      this.gamePlay.deselectCell(this.selectedCharacter.position);
-      this.gamePlay.deselectCell(index); // снять выделение хода
+      this.deselectAllCells();
       this.selectedCharacter.position = index;
-      this.gamePlay.selectCell(index); // установить выделение выбранного персонажа
       this.gamePlay.redrawPositions(this.gameState.allPositionsCharacter);
       this.gameState.switchPlayer();
     }
@@ -213,8 +211,6 @@ export default class GameController {
     const { character: attacker } = attackerPosChar;
     const { character: target } = targetPosChar;
     const damage = Math.max(attacker.attack - target.defence, attacker.attack * 0.1);
-
-    // debugger
     if (this.gameState.isPlayerState) {
       this.gameState.score += damage;
     } else {
@@ -248,6 +244,9 @@ export default class GameController {
       return;
     }
 
+    // Удаляем ранее отображенные поля хода
+    this.hideMoveableCells();
+
     const clickedCharacter = this.#getCharacterFromPosition(index);
 
     if (!clickedCharacter) {
@@ -263,10 +262,7 @@ export default class GameController {
           await this.#executeAttack(this.selectedCharacter, clickedCharacter);
 
           // снять выделения персонажей
-          if (this.selectedCharacter) {
-            this.gamePlay.deselectCell(this.selectedCharacter.position);
-          }
-          this.gamePlay.deselectCell(index); // снять выделение хода
+          this.deselectAllCells();
           this.selectedCharacter = null;
 
           this.gameState.switchPlayer();
@@ -277,18 +273,23 @@ export default class GameController {
         // кликнули по противнику не выбрав атакующего персонажа
         this.gamePlay.showMessage(index, '\u26A0');
       }
-      return;
+    } else {
+      // Кликнули по персонажу игрока
+
+      // Проверяем, есть ли уже выбранный персонаж
+      if (this.selectedCharacter) {
+        this.gamePlay.deselectCell(this.selectedCharacter.position);
+      }
+
+      // Выделяем текущую ячейку
+      this.gamePlay.selectCell(index);
+
+      this.selectedCharacter = clickedCharacter;
+
+      // подсветить доступные хода
+      const possibleMoves = this.findPossibleMoves(this.selectedCharacter);
+      possibleMoves.map((idx) => this.gamePlay.showMoveableCell(idx));
     }
-
-    // Проверяем, есть ли уже выбранный персонаж
-    if (this.selectedCharacter) {
-      this.gamePlay.deselectCell(this.selectedCharacter.position);
-    }
-
-    // Выделяем текущую ячейку
-    this.gamePlay.selectCell(index);
-
-    this.selectedCharacter = clickedCharacter;
   }
 
   onCellEnter(index) {
@@ -371,6 +372,18 @@ export default class GameController {
     return result.join('');
   }
 
+  hideMoveableCells() {
+    for (let index = 0; index < this.gamePlay.boardSize ** 2; index += 1) {
+      this.gamePlay.hideMoveableCell(index);
+    }
+  }
+
+  deselectAllCells() {
+    for (let index = 0; index < this.gamePlay.boardSize ** 2; index += 1) {
+      this.gamePlay.deselectCell(index);
+    }
+  }
+
   isPlayerCharacter(character) {
     return this.gameState.playerTeam.has(character);
   }
@@ -414,14 +427,14 @@ export default class GameController {
     return { rowDistance, columnDistance };
   }
 
-  isMoveAllowed(selectedCharacter, targetPosition) {
+  isMoveAllowed(selectedPosCharacter, targetPosition) {
     // перемещение на другого персонажа недопустимо
     if (this.#getCharacterFromPosition(targetPosition)) {
       return false;
     }
 
-    const { character } = selectedCharacter;
-    const { position } = selectedCharacter;
+    const { character } = selectedPosCharacter;
+    const { position } = selectedPosCharacter;
     const { rowDistance, columnDistance } = this.#calcDistance(position, targetPosition);
 
     switch (character.constructor) {
@@ -439,6 +452,17 @@ export default class GameController {
     }
   }
 
+  findPossibleMoves(startPosChar) {
+    const { boardSize } = this.gamePlay;
+    const possibleMoves = [];
+    for (let index = 0; index < boardSize ** 2; index += 1) {
+      if (this.isMoveAllowed(startPosChar, index)) {
+        possibleMoves.push(index);
+      }
+    }
+    return possibleMoves;
+  }
+
   async #attackOneByOne(attacker, targets, step) {
     if (step >= targets.length) {
       return; // переблали всех или принудительно завешили
@@ -449,6 +473,7 @@ export default class GameController {
       this.isAttacking = true;
       this.isAttackDone = true;
       await this.#executeAttack(attacker, targetCharacter);
+
       this.isAttacking = false;
       return; // принудительно завершим рекурсивный обход
     }
@@ -546,7 +571,8 @@ export default class GameController {
     // таймер хода компьютера
     this.intervalComputer = setInterval(async () => {
       if (this.gameState.isComputerState && !this.isAttacking) {
-        // ход противника
+        // ход компьютера
+        this.deselectAllCells();
         this.isAttackDone = false;
         // 1. Выбираем персонажа компьютера с максимальным уроном
         const computerCharacter = PositionedCharacter.getMaxAttackCharacter(
